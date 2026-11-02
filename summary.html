@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS471 Midterm Summary</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column, sticky lecture nav, each lecture = heading + plain-language blocks + "must remember" box. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --surface-2:#f6f8fa; --ink:#18212e; --muted:#5a6676; --line:#d8dee6;
+  --accent:#1d5c63; --accent-ink:#ffffff; --accent-soft:#dcebec;
+  --good:#1c7a45; --good-bg:#e1f3e8; --bad:#b4302a; --bad-bg:#fbe5e3; --flag:#a56a00; --flag-bg:#fdf0d5;
+  --s-if:#3b6fb6; --s-id:#7a55b0; --s-ex:#c0552f; --s-mem:#2f8a6a; --s-wb:#8a7a20;
+  --font-ar:"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  --s-if:#7fa8e6; --s-id:#b394e0; --s-ex:#f08a64; --s-mem:#6cc9a5; --s-wb:#d6c35a;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  --s-if:#7fa8e6; --s-id:#b394e0; --s-ex:#f08a64; --s-mem:#6cc9a5; --s-wb:#d6c35a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ar);font-size:15.5px;line-height:1.85;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:820px;margin:0 auto;padding-block:20px 80px;display:grid;gap:18px}
+a{color:var(--accent)}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);direction:ltr;text-align:right}
+h1{margin:0;font-size:27px;line-height:1.3;text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:65ch}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line)}
+nav.toc a{flex:none;text-decoration:none;font-size:13px;font-weight:600;color:var(--muted);border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px}
+nav.toc a:hover{color:var(--accent);border-color:var(--accent)}
+section.lec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px;scroll-margin-top:60px;min-width:0}
+.lec-h{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.lec-n{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 8px;direction:ltr}
+h2{margin:0;font-size:21px;line-height:1.35;text-wrap:balance}
+.idea{margin:0;color:var(--muted);font-size:14.5px}
+h3{margin:6px 0 0;font-size:16.5px;color:var(--accent)}
+p{margin:0;max-width:68ch}
+ul{margin:0;padding-inline-start:20px;display:grid;gap:4px}
+.en{direction:ltr;unicode-bidi:isolate;font-family:var(--font-mono);font-size:.92em}
+.box{border-radius:10px;padding:10px 14px;border:1px solid var(--line);background:var(--surface-2)}
+.box.key{border-color:var(--good);background:var(--good-bg)}
+.box.key b.t{color:var(--good)}
+.box.trap{border-color:var(--bad);background:var(--bad-bg)}
+.box.trap b.t{color:var(--bad)}
+.box.ex{border-color:var(--flag);background:var(--flag-bg)}
+.box.ex b.t{color:var(--flag)}
+.box b.t{display:block;font-size:13.5px;margin-bottom:2px}
+.formula{direction:ltr;text-align:center;font-family:var(--font-mono);font-size:15px;font-weight:600;background:var(--surface-2);border:1px dashed var(--accent);border-radius:8px;padding:8px 10px;overflow-x:auto}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+th{background:var(--surface-2);font-size:13px;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.c{text-align:center}
+.pipe{direction:ltr;overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.pipe table{font-family:var(--font-mono);font-size:12.5px;min-width:520px}
+.pipe th,.pipe td{text-align:center;padding:5px 6px;white-space:nowrap}
+.pipe td.n{text-align:left;color:var(--ink);font-weight:600}
+.st{display:inline-block;min-width:34px;border-radius:4px;padding:0 4px;color:#fff;font-weight:600}
+.IF{background:var(--s-if)} .ID{background:var(--s-id)} .EX{background:var(--s-ex)} .MEM{background:var(--s-mem)} .WB{background:var(--s-wb)}
+.STL{background:transparent;color:var(--bad);border:1px dashed var(--bad)}
+.stages{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.stage{border-radius:9px;padding:8px;color:#fff;display:grid;gap:2px;min-width:0}
+.stage b{font-family:var(--font-mono);font-size:15px;direction:ltr}
+.stage span{font-size:12.5px;line-height:1.5}
+@media (max-width:560px){ .stages{grid-template-columns:repeat(2,minmax(0,1fr))} h1{font-size:23px} section.lec{padding:14px} }
+.fmt{direction:ltr;display:grid;gap:6px;font-family:var(--font-mono);font-size:12.5px}
+.fmt .row{display:flex;gap:3px;align-items:stretch}
+.fmt .lab{flex:none;width:22px;font-weight:600;display:grid;place-items:center}
+.fmt .f{border:1px solid var(--accent);background:var(--accent-soft);border-radius:4px;text-align:center;padding:3px 2px;min-width:0;overflow:hidden}
+.fmt .f small{display:block;color:var(--muted);font-size:11px}
+.go{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:16px}
+.go a{color:var(--accent-ink);font-weight:700}
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl">
+  <header style="display:grid;gap:6px">
+    <div class="eyebrow">CS471 · Parallel Processing · Lectures 1–4</div>
+    <h1>ملخص الميدترم بالبلدي</h1>
+    <p class="sub">الأربع محاضرات في صفحة واحدة. كل جزء فيه الفكرة ببساطة، وبعدها "لازم تحفظ" و"فخ في الامتحان". اقرا بالترتيب، لأن كل محاضرة مبنية على اللي قبلها.</p>
+  </header>
+
+  <nav class="toc" aria-label="المحتويات">
+    <a href="#big">الصورة الكبيرة</a>
+    <a href="#l1">محاضرة 1</a>
+    <a href="#l2">محاضرة 2</a>
+    <a href="#l3">محاضرة 3</a>
+    <a href="#l4">محاضرة 4</a>
+    <a href="#laws">كل القوانين</a>
+    <a href="#traps">فخاخ الصح والغلط</a>
+  </nav>
+
+  <!-- BIG PICTURE -->
+  <section class="lec" id="big">
+    <div class="lec-h"><h2>الصورة الكبيرة في 30 ثانية</h2></div>
+    <p>المادة كلها بتجاوب على سؤال واحد: <b>إزاي نخلي الـ CPU أسرع؟</b> الإجابة: نخليه يشتغل على كذا حاجة في نفس الوقت (<span class="en">Parallel Processing</span>). أشهر طريقة لده هي الـ <b><span class="en">Pipelining</span></b>: بنقسّم شغل الـ instruction لمراحل، وكل مرحلة تشتغل على instruction مختلفة في نفس اللحظة، زي خط إنتاج في مصنع.</p>
+    <ul>
+      <li><b>محاضرة 1:</b> يعني إيه parallel، وتصنيف Flynn، وفكرة الـ pipeline (مثال الغسيل) وقوانينه.</li>
+      <li><b>محاضرة 2:</b> الـ pipeline جوه الـ CPU: RISC، والـ 5 stages، وشكل الـ instructions (R/I/J).</li>
+      <li><b>محاضرة 3:</b> معادلات الأداء (CPU time و CPI)، والمشاكل اللي بتبوّظ الـ pipeline (<span class="en">Hazards</span>) وحلها بالـ <span class="en">Forwarding</span>.</li>
+      <li><b>محاضرة 4:</b> الحالات اللي لازم فيها stall، ومشكلة الـ branches (<span class="en">Control Hazard</span>) وحلولها.</li>
+    </ul>
+  </section>
+
+  <!-- L1 -->
+  <section class="lec" id="l1">
+    <div class="lec-h"><span class="lec-n">L1</span><h2>Pipelining Introduction</h2></div>
+    <p class="idea">الفكرة: بدل ما تخلص حاجة وبعدين تبدأ اللي بعدها، ابدأ اللي بعدها قبل ما الأولى تخلص.</p>
+
+    <h3>Parallel Processing</h3>
+    <p>تنفيذ أحداث متزامنة عشان نسرّع الحساب ونزود الـ <span class="en">throughput</span> (كمية الشغل اللي بتخلص في وقت معين). العيب إن الـ hardware بيزيد فالتكلفة تزيد، بس التكنولوجيا رخّصت الـ hardware فبقى مجدي.</p>
+
+    <h3>تصنيف Flynn (1966)</h3>
+    <p>بيبص على حاجتين: كام <b>Instruction</b> بتتنفذ في نفس الوقت، وكام <b>Data</b>. أول حرفين للـ instruction وآخر حرفين للـ data.</p>
+    <div class="tbl"><table>
+      <tr><th>النوع</th><th>معناه ببساطة</th><th>بيتستخدم في</th></tr>
+      <tr><td class="en">SISD</td><td>processor واحد، أمر واحد على بيانات واحدة. رخيص وموفر بس بطيء.</td><td>Microcontrollers، older mainframes، أي single-processor</td></tr>
+      <tr><td class="en">SIMD</td><td>control unit واحدة بتبعت <b>نفس الأمر</b> لكذا processor، وكل واحد على <b>بيانات مختلفة</b>.</td><td>GPUs، scientific processing (مثال تحريك شخصية في لعبة)</td></tr>
+      <tr><td class="en">MISD</td><td>أوامر كتير على <b>نفس البيانات</b>. <b>نظري بس</b>، مفيش منه تجاري.</td><td>Space shuttle flight control (fault detection)</td></tr>
+      <tr><td class="en">MIMD</td><td>كل processor بأمر مختلف وبيانات مختلفة. ممتاز للـ multitasking بس أغلى.</td><td>أغلب الـ PCs واللابتوبات والموبايلات</td></tr>
+    </table></div>
+
+    <h3>مثال الغسيل (أهم مثال في المادة)</h3>
+    <p>4 طلاب، كل واحد عنده غسيل: غسالة <b>30</b> دقيقة، نشافة <b>40</b>، طي <b>20</b>.</p>
+    <ul>
+      <li><b>Sequential:</b> كل واحد يخلص كله وبعدين اللي بعده: 4 × 90 = 360 دقيقة = <b>6 ساعات</b>.</li>
+      <li><b>Pipelined:</b> أول ما الأول يطلع من الغسالة التاني يدخل: 30 + (4 × 40) + 20 = 210 دقيقة = <b>3.5 ساعة</b>.</li>
+    </ul>
+    <div class="box key"><b class="t">الدروس المستفادة (بتيجي صح وغلط)</b>
+      <ul>
+        <li>أبطأ مرحلة (النشافة 40) هي اللي بتحدد وقت النهاية: <span class="en">slowest stage determines the finish time</span>.</li>
+        <li>الـ task الواحدة <b>مش</b> بتسرع (لسه بتاخد 90 دقيقة). اللي بيسرع هو <b>متوسط</b> الوقت لكل task (210 ÷ 4 = 52.5 دقيقة).</li>
+        <li><b>Balanced pipeline</b> = كل المراحل نفس الوقت، وده الوضع المثالي. فيه: الـ speedup = عدد المراحل.</li>
+      </ul>
+    </div>
+
+    <h3>مصطلحات</h3>
+    <ul>
+      <li><b class="en">Latency</b>: الوقت اللي instruction واحدة بتاخده لحد ما تخلص.</li>
+      <li><b class="en">Throughput</b>: عدد الـ instructions اللي بتخلص في الثانية.</li>
+      <li><b class="en">Clock cycle</b>: كل حاجة في الـ CPU بتتحرك مع بعض على نبضة الـ clock.</li>
+      <li><b class="en">Processor cycle</b>: الوقت اللازم لتحريك instruction خطوة واحدة في الـ pipeline.</li>
+      <li><b class="en">CPI</b>: متوسط عدد الـ clock cycles لكل instruction.</li>
+    </ul>
+
+    <h3>شكل الـ pipeline من جوه</h3>
+    <p>الـ pipeline مقسوم لـ <b>segments</b>. كل segment دايرة (<span class="en">combinational circuit Si</span>) بتعمل جزء من الشغل، وبين كل segment والتاني <b>register (Ri)</b> بيشيل النتيجة للمرحلة اللي بعدها (زي الشخص اللي بيشيل الهدوم من الغسالة للنشافة). كل الـ registers شغالة على <b>clock واحد مشترك</b>.</p>
+
+    <h3>القوانين (هتتحل في الامتحان أكيد)</h3>
+    <p>عندك <b>k</b> = عدد الـ segments، و <b>n</b> = عدد الـ tasks، و <b>tp</b> = زمن الـ clock cycle، و <b>tn</b> = زمن الـ task من غير pipeline.</p>
+    <div class="formula">Pipeline cycles = k + (n − 1)</div>
+    <div class="formula">Pipeline time = (k + n − 1) × tp</div>
+    <div class="formula">Non-pipeline time = n × tn &nbsp;&nbsp; (usually tn = k × tp)</div>
+    <div class="formula">Speedup S = (n × tn) / ((k + n − 1) × tp)</div>
+    <p>ليه k + n − 1؟ أول task بياخد <b>k</b> cycles عشان يعدي على كل المراحل. بعدها الـ pipeline بيبقى مليان، فكل cycle بيطلع task جديد، يعني الـ (n − 1) الباقيين بياخدوا (n − 1) cycles.</p>
+    <div class="box ex"><b class="t">مثال محلول (زي الكويز)</b>
+      k = 4، tp = 10 ns، n = 200:<br>
+      الوقت = (4 + 200 − 1) × 10 = <b>2030 ns</b>.<br>
+      من غير pipeline: tn = 4 × 10 = 40، والوقت = 200 × 40 = 8000 ns.<br>
+      Speedup = 8000 ÷ 2030 ≈ <b>3.94</b>.
+    </div>
+    <div class="box key"><b class="t">لازم تحفظ</b>
+      <ul>
+        <li>أقصى speedup نظري = <b>k</b> (عدد الـ segments). ده لما n تكون كبيرة جدًا.</li>
+        <li>بعد ما الـ pipeline يتملي، بيطلع output كل <b>clock cycle واحدة</b> مهما كان عدد الـ segments.</li>
+        <li>الـ clock cycle لازم يساوي <b>أبطأ segment</b>. فلو المراحل 30، 45، 25، 40 يبقى الـ clock = 45.</li>
+        <li>ليه مش بنوصل للـ speedup الأقصى؟ المراحل مش متساوية، والسريعة بتستنى البطيئة.</li>
+        <li>نوعين pipeline: <b class="en">Arithmetic pipeline</b> (بيقسم عملية حسابية) و <b class="en">Instruction pipeline</b> (بيداخل fetch و decode و execute).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- L2 -->
+  <section class="lec" id="l2">
+    <div class="lec-h"><span class="lec-n">L2</span><h2>RISC and Instruction Pipelining</h2></div>
+    <p class="idea">الفكرة: نطبّق الـ pipeline على الـ instructions نفسها جوه الـ CPU، باستخدام RISC لأن أوامره بسيطة ومتساوية الحجم.</p>
+
+    <h3>Instruction Pipelining</h3>
+    <ul>
+      <li>تقنية بتنفذ <b class="en">ILP (Instruction Level Parallelism)</b> جوه processor واحد. الـ pipeline اسمه برضه ILP.</li>
+      <li>الـ processor يبقى <b class="en">fully pipelined</b> لو يقدر يعمل fetch لـ instruction جديدة <b>كل cycle</b>.</li>
+      <li>مشروع IBM Stretch (1956–1961) هو اللي سمّى Fetch و Decode و Execute.</li>
+      <li>Atmel AVR و PIC فيهم pipeline من <b>مرحلتين</b> بس.</li>
+    </ul>
+
+    <h3>CISC ضد RISC</h3>
+    <div class="tbl"><table>
+      <tr><th></th><th class="en">CISC (Complex)</th><th class="en">RISC (Reduced)</th></tr>
+      <tr><td>الأوامر</td><td>معقدة، الأمر الواحد بيعمل كذا عملية</td><td>بسيطة، أمر واحد = عملية واحدة</td></tr>
+      <tr><td>الـ hardware</td><td>معقد</td><td>بسيط</td></tr>
+      <tr><td>مثال</td><td class="en">MAC R0,R1,R3 → R0 = (R1×R3)+R0<br>ADD [R0],[R1],[R3]</td><td class="en">ADD R0,R1,R3 → R0 = R1+R3<br>LD R0,[R1]</td></tr>
+    </table></div>
+    <div class="box trap"><b class="t">فخ</b>لو شفت ضرب وجمع في أمر واحد، أو أقواس [ ] (memory) في أمر حسابي، يبقى <b>CISC</b>. و "SISC" و "RISK" اختيارات وهمية.</div>
+
+    <h3>خصائص RISC</h3>
+    <ul>
+      <li>كل العمليات على البيانات بتحصل في الـ <b>registers</b>.</li>
+      <li><b>Load و Store بس</b> هم اللي بيلمسوا الـ memory. Load من الـ memory للـ register، Store العكس.</li>
+      <li>عنده <b>32 register</b>، والـ instructions كلها نفس الحجم (32 bit)، و formats قليلة.</li>
+      <li><b>3 classes</b> من الأوامر: (1) ALU مثل add و sub و and و or، (2) Load/Store والعنوان = base register + offset ويتسمى <span class="en">effective address</span>، (3) Branches/Jumps زي if-else.</li>
+    </ul>
+
+    <h3>الـ 5 Stages (أهم حاجة في المادة كلها)</h3>
+    <div class="stages">
+      <div class="stage IF"><b>IF</b><span>Instruction Fetch: هات الأمر من الـ memory و PC = PC + 4</span></div>
+      <div class="stage ID"><b>ID</b><span>Decode: افهم الأمر واقرا الـ registers</span></div>
+      <div class="stage EX"><b>EX</b><span>Execute: الـ ALU يحسب (أو يحسب الـ effective address)</span></div>
+      <div class="stage MEM"><b>MEM</b><span>Memory: load يقرا أو store يكتب</span></div>
+      <div class="stage WB"><b>WB</b><span>Write Back: اكتب النتيجة في الـ register</span></div>
+    </div>
+    <ul>
+      <li><b>ليه PC + 4؟</b> لأن كل instruction = 32 bit، وكل خانة memory = 8 bit، فالأمر بياخد 4 خانات.</li>
+      <li><b>ADD:</b> مرحلة <b>MEM فاضية</b> (dummy) لأنه مش بيلمس الـ memory.</li>
+      <li><b>LD R1,24[R0]:</b> EX يحسب R0 + 24، و MEM يقرا، و WB يكتب في R1. كل المراحل شغالة.</li>
+      <li><b>Branch:</b> العنوان والشرط بيتحسبوا بدري، فالـ branch بيخلص في <b>2 cycles</b> والباقي مفيهوش شغل.</li>
+      <li>في كل EX فيه 3 حالات: memory reference (يجمع base + offset)، register-register ALU، register-immediate ALU (مع sign-extended immediate).</li>
+    </ul>
+
+    <h3>شكل الـ instructions (R / I / J)</h3>
+    <div class="fmt">
+      <div class="row"><span class="lab">R</span>
+        <span class="f" style="flex:6">op<small>6</small></span><span class="f" style="flex:5">rs<small>5</small></span><span class="f" style="flex:5">rt<small>5</small></span><span class="f" style="flex:5">rd<small>5</small></span><span class="f" style="flex:5">shamt<small>5</small></span><span class="f" style="flex:6">funct<small>6</small></span></div>
+      <div class="row"><span class="lab">I</span>
+        <span class="f" style="flex:6">op<small>6</small></span><span class="f" style="flex:5">rs<small>5</small></span><span class="f" style="flex:5">rt<small>5</small></span><span class="f" style="flex:16">immediate / offset<small>16</small></span></div>
+      <div class="row"><span class="lab">J</span>
+        <span class="f" style="flex:6">op<small>6</small></span><span class="f" style="flex:26">jump target address<small>26</small></span></div>
+    </div>
+    <div class="box key"><b class="t">لازم تحفظ</b>
+      <ul>
+        <li>3 أنواع: <b>R</b> (Register) و <b>I</b> (Immediate) و <b>J</b> (Jump). كلهم يبدأوا بـ <b>6-bit opcode</b> والمجموع 32.</li>
+        <li><b>R-type</b> فيه <b>3 registers</b> (rs, rt, rd) + shamt + funct.</li>
+        <li><b>I-type</b> فيه <b>2 registers</b> + 16-bit immediate.</li>
+        <li><b>J-type</b> = opcode + 26-bit target.</li>
+        <li>كل register field = <b>5 bits</b>، لأن 2⁵ = 32 register.</li>
+        <li>rs = أول source، rt = تاني source، rd = destination.</li>
+      </ul>
+    </div>
+
+    <h3>إزاي الـ pipeline بيشتغل فعلًا</h3>
+    <ul>
+      <li>بنبدأ instruction جديدة كل cycle، فالـ speedup المثالي = 5.</li>
+      <li>لازم <b>instruction memory منفصلة عن data memory</b>، لأن IF و MEM بيستخدموا الـ memory في نفس الـ cycle. لو memory واحدة يحصل تعارض.</li>
+      <li>بين كل مرحلة والتانية <b>pipeline register</b>: <span class="en">IF/ID، ID/EX، EX/MEM، MEM/WB</span>. اسم الـ register = المرحلتين اللي هو بينهم.</li>
+      <li>في cycle 5 الـ pipeline بيبقى <b>مليان</b> وكل الـ hardware شغال.</li>
+    </ul>
+    <div class="box ex"><b class="t">مثال المحاضرة (كل register = رقمه + 100، وكل memory = 99)</b>
+      <span class="en">lw $8, 4($29)</span>: العنوان = 129 + 4 = <b>133</b>، والقيمة اللي هتتقري = 99، فـ $8 = 99.<br>
+      <span class="en">sub $2, $4, $5</span> = 104 − 105 = <b>−1</b>.
+    </div>
+  </section>
+
+  <!-- L3 -->
+  <section class="lec" id="l3">
+    <div class="lec-h"><span class="lec-n">L3</span><h2>Performance Equations and Pipeline Hazards</h2></div>
+    <p class="idea">الفكرة: نحسب سرعة الـ CPU بالأرقام، وبعدين نشوف إيه اللي بيعطّل الـ pipeline وإزاي نحله.</p>
+
+    <h3>معادلات الأداء</h3>
+    <div class="formula">CPU time = IC × CPI × Clock cycle time</div>
+    <div class="formula">CPI = CPU clock cycles / IC</div>
+    <div class="formula">Average CPI = Σ (ICi / IC) × CPIi</div>
+    <div class="formula">Avg instruction time = Clock cycle × Avg CPI</div>
+    <p>IC = عدد الـ instructions. و Average CPI = متوسط مرجّح: نسبة كل نوع instruction × عدد cycles بتاعه.</p>
+    <div class="box ex"><b class="t">مثال المحاضرة (لازم تعرف تحله)</b>
+      Clock = 1 ns. ALU 40% و branch 20% بياخدوا 4 cycles، و memory 40% بياخد 5 cycles. Overhead = 0.2 ns.<br>
+      1) من غير pipeline: 1 × [(0.4 + 0.2) × 4 + 0.4 × 5] = <b>4.4 ns</b><br>
+      2) بالـ pipeline: الـ ideal CPI = 1، يعني 1 × 1 + 0.2 = <b>1.2 ns</b><br>
+      3) Speedup = 4.4 ÷ 1.2 ≈ <b>3.7</b>
+    </div>
+
+    <h3>الـ Hazards: يعني إيه؟</h3>
+    <p>Hazard = حالة بتمنع الـ instruction الجاية إنها تتنفذ في الـ cycle بتاعها. فيه 3 أنواع، احفظهم بالسبب:</p>
+    <div class="tbl"><table>
+      <tr><th>النوع</th><th>السبب</th><th>مثال بسيط</th><th>الحل</th></tr>
+      <tr><td><b class="en">Structural</b></td><td>تعارض على <b>resource</b> (الـ hardware مش كفاية)</td><td>memory واحدة و IF و MEM عايزينها في نفس الوقت</td><td>stall، أو زوّد الـ resources (separate instruction & data cache)</td></tr>
+      <tr><td><b class="en">Data</b></td><td><b>data dependency</b>: أمر محتاج نتيجة أمر لسه مخلصش</td><td>ADD R1,... وبعده SUB ...,R1,...</td><td>stall، أو Forwarding، أو Out-of-order (Tomasulo)</td></tr>
+      <tr><td><b class="en">Control</b></td><td>تغيير الـ <b>PC</b> (branches)</td><td>beq، مش عارفين نجيب أنهي أمر بعده</td><td>stall + flush، delay slot، predict (محاضرة 4)</td></tr>
+    </table></div>
+    <p>التعريف الرسمي للـ Data Hazard (جه في الكويز): "occur when the pipeline changes the order of read/write accesses to operands so that the order differs from the order seen by sequentially executing instructions on an unpipelined processor".</p>
+
+    <h3>الـ Stall (Bubble)</h3>
+    <ul>
+      <li>الـ stall = نوقف instruction cycle أو أكتر. اسمه برضه <b class="en">bubble</b>.</li>
+      <li>لما instruction توقف، <b>كل اللي بعدها</b> بيوقف، و <b>اللي قبلها بيكمل</b> (وإلا الـ hazard عمره ما هيتحل). ومفيش fetch لأوامر جديدة.</li>
+    </ul>
+    <div class="formula">CPI pipelined = 1 + stalls per instruction</div>
+    <div class="formula">Speedup = CPI unpipelined / (1 + stalls per instruction)</div>
+
+    <h3>مثال الـ Data Hazard</h3>
+    <div class="pipe"><table>
+      <tr><th>Instruction</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>hazard?</th></tr>
+      <tr><td class="n">ADD R1,R2,R3</td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">MEM</span></td><td><span class="st WB">WB</span></td><td></td><td>writes R1</td></tr>
+      <tr><td class="n">SUB R4,R1,R5</td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">MEM</span></td><td><span class="st WB">WB</span></td><td>YES (distance 1)</td></tr>
+      <tr><td class="n">AND R6,R1,R7</td><td></td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">MEM</span></td><td>YES (distance 2)</td></tr>
+      <tr><td class="n">OR R8,R1,R9</td><td></td><td></td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td>NO (distance 3)</td></tr>
+    </table></div>
+    <p><b>ليه OR مفيهاش hazard؟</b> الـ ADD بيكتب R1 في <b>النص الأول</b> من cycle 5، والـ OR بيقرا R1 في <b>النص التاني</b> من نفس الـ cycle. فبيلحق.</p>
+    <div class="box key"><b class="t">قاعدة ذهبية للمسافة بين الأمرين</b>
+      <ul>
+        <li>المسافة 1 (ورا بعض على طول): hazard، والحل forwarding من <b>EX/MEM</b>.</li>
+        <li>المسافة 2: hazard، والحل forwarding من <b>MEM/WB</b>.</li>
+        <li>المسافة 3 أو أكتر: <b>مفيش hazard</b>.</li>
+      </ul>
+    </div>
+    <p><b>الحل بالـ stall بس (من غير forwarding):</b> الـ SUB بتستنى <b>2 stalls</b>، وكل اللي وراها بيتأخر معاها. الـ 5 أوامر كانوا هياخدوا 9 cycles، بقوا <b>11</b>.</p>
+
+    <h3>الـ Forwarding (Bypassing)</h3>
+    <p>بدل ما نستنى النتيجة تتكتب في الـ register file ونقراها تاني، ناخدها <b>على طول</b> من الـ pipeline register (EX/MEM أو MEM/WB) ونوديها لمدخل الـ ALU. ده بيعمله <b class="en">forwarding unit</b> و 2 multiplexers قدام الـ ALU:</p>
+    <div class="tbl"><table>
+      <tr><th>القيمة</th><th>المعنى</th></tr>
+      <tr><td class="c en">0</td><td>مفيش hazard، خد من الـ register file عادي</td></tr>
+      <tr><td class="c en">1</td><td>خد من <b>MEM/WB</b> (المسافة 2)</td></tr>
+      <tr><td class="c en">2</td><td>خد من <b>EX/MEM</b> (المسافة 1)</td></tr>
+    </table></div>
+    <p><b>ForwardA</b> = للـ operand الأول (Rs)، و <b>ForwardB</b> = للـ operand التاني (Rt).</p>
+    <p><b>شرط EX/MEM hazard:</b> الأمر اللي قبلي بيكتب في register (<span class="en">EX/MEM.RegWrite = 1</span>)، والـ destination بتاعه = واحد من الـ sources بتوعي:</p>
+    <div class="formula">if (EX/MEM.RegWrite = 1 and EX/MEM.RegisterRd = ID/EX.RegisterRs) → ForwardA = 2</div>
+    <p><b>شرط MEM/WB hazard:</b> نفس الفكرة بس من MEM/WB، بشرط زيادة: إن EX/MEM <b>مش</b> بيكتب في نفس الـ register (عشان لو الـ register اتكتب مرتين ورا بعض، ناخد الأحدث من EX/MEM).</p>
+    <div class="formula">if (MEM/WB.RegWrite = 1 and MEM/WB.RegisterRd = ID/EX.RegisterRs and (EX/MEM.RegisterRd ≠ ID/EX.RegisterRs or EX/MEM.RegWrite = 0)) → ForwardA = 1</div>
+
+    <div class="box ex"><b class="t">إزاي تحل سؤال hazard في الامتحان (خطوات)</b>
+      <ul>
+        <li>ارسم الجدول: كل أمر يبدأ بعد اللي قبله بـ cycle: IF ID EX MEM WB.</li>
+        <li>لكل أمر، شوف الـ sources بتوعه (آخر 2 registers). هل أي أمر قبله كتب فيهم؟</li>
+        <li>احسب المسافة: 1 يبقى EX/MEM، و 2 يبقى MEM/WB، و 3 مفيش.</li>
+        <li>الـ hazard بيتكشف لما الأمر المحتاج يوصل <b>EX</b>. مثلًا أمر 2 بيدخل EX في <b>cycle 4</b> (ودي إجابة الكويز).</li>
+      </ul>
+      مثال الكويز: ADD R1,R3,R3 ثم SUB R1,R1,R5 ثم AND R6,R8,R1 ثم OR R8,R11,R1<br>
+      • أول hazard في cycle <b>4</b>.<br>
+      • hazard الـ SUB من <b>EX/MEM</b>.<br>
+      • AND فيها hazard؟ <b>True</b> (R1 من SUB، المسافة 1).
+    </div>
+
+    <h3>لما الـ Forwarding مش بيكفي: Load</h3>
+    <p><span class="en">LD R1, 0(R2)</span> وبعده <span class="en">SUB R4, R1, R5</span>: الـ load بيجيب R1 من الـ memory في <b>MEM</b> (آخر cycle 4)، والـ SUB محتاجاه في أول cycle 4. مينفعش نبعت data لورا في الزمن (<span class="en">forwarding cannot be backward</span>)، فلازم <b>stall واحد</b> وبعده forwarding من MEM/WB.</p>
+  </section>
+
+  <!-- L4 -->
+  <section class="lec" id="l4">
+    <div class="lec-h"><span class="lec-n">L4</span><h2>Data Hazard Stalls and Control Hazards</h2></div>
+    <p class="idea">الفكرة: إزاي نعمل الـ stall فعليًا لما الـ forwarding ميكفيش، وإيه نعمل مع الـ branches.</p>
+
+    <h3>نوعين data hazards</h3>
+    <ul>
+      <li><b>Potential:</b> الـ forwarding unit بيحلها من غير ما يأثر على الأداء.</li>
+      <li><b>Unavoidable:</b> الـ forwarding مش قادر عليها (زي الـ load-use). محتاجين <b class="en">hazard detection unit</b> يعمل stall.</li>
+    </ul>
+    <div class="pipe"><table>
+      <tr><th>Instruction</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th></tr>
+      <tr><td class="n">LW $s0,100($t0)</td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">MEM</span></td><td><span class="st WB">WB</span></td><td></td><td></td></tr>
+      <tr><td class="n">ADD $t2,$s0,$t3</td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st STL">stall</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">MEM</span></td><td><span class="st WB">WB</span></td></tr>
+    </table></div>
+
+    <h3>إزاي نعمل الـ stall؟ طريقتين</h3>
+    <ul>
+      <li><b>#1 بالـ Compiler:</b> الـ compiler يكتشف ويحط <b>NOP</b> (أمر مبيعملش حاجة: <span class="en">SLL $0, $0, 0</span>). <b>العيب:</b> بنعتمد على الـ compiler.</li>
+      <li><b>#2 بالـ Hardware:</b> <b>hazard detection unit</b> في مرحلة ID. بيعمل stall لو الأمر اللي في EX هو load (<span class="en">ID/EX.MemRead = 1</span>) والـ register اللي بيحمّله (RT) هو واحد من اللي الأمر الحالي محتاجه:</li>
+    </ul>
+    <div class="formula">if (ID/EX.MemRead = 1 and (ID/EX.RegRT = IF/ID.RegRS or ID/EX.RegRT = IF/ID.RegRT)) → stall</div>
+    <p>تأثير الـ stall: مرحلة <b>ID بتتكرر</b> (IF ID ID EX ...)، عن طريق إننا نحافظ على قيم IF/ID للـ cycle الجاية. وبعدها MEM/WB forwarding.</p>
+
+    <h3>الـ Control Hazard (الـ branches)</h3>
+    <p>المشكلة: الأمر بيتجاب في <b>IF (stage 1)</b>، لكن قرار الـ branch (نروح ولا لأ) بيتعرف في <b>EX (stage 3)</b>. فإحنا بنجيب أوامر وإحنا مش عارفين هي صح ولا غلط.</p>
+    <div class="pipe"><table>
+      <tr><th>Address</th><th>Instruction</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+      <tr><td>10</td><td class="n">beq r1, r2, L</td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">EX</span></td><td><span class="st MEM">M</span></td><td><span class="st WB">W</span></td><td></td></tr>
+      <tr><td>14</td><td class="n">add r3, r0, r3</td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st STL">NOP</span></td><td><span class="st STL">NOP</span></td><td><span class="st STL">NOP</span></td></tr>
+      <tr><td>18</td><td class="n">sub r5, r4, r6</td><td></td><td></td><td><span class="st IF">IF</span></td><td><span class="st STL">NOP</span></td><td><span class="st STL">NOP</span></td><td><span class="st STL">NOP</span></td></tr>
+      <tr><td>25</td><td class="n">L: or r3, r2, r4</td><td></td><td></td><td></td><td><span class="st IF">IF</span></td><td><span class="st ID">ID</span></td><td><span class="st EX">Ex</span></td></tr>
+    </table></div>
+    <p>لو الـ branch اتاخد (taken)، الأوامر اللي اتجابت غلط بنعملها <b class="en">Zap / Flush</b>: نمسح IF/ID ونحوّلها NOP، ونمنع تحديث الـ PC.</p>
+
+    <h3>إزاي نقلل خسارة الـ branch؟</h3>
+    <ul>
+      <li><b>ننقل قرار الـ branch من EX لـ ID:</b> (أ) حساب الـ target address، (ب) قرار الشرط. الـ penalty بيقل من <b>3 cycles لـ 1 cycle</b>. بس محتاج bypasses جديدة للـ ID.</li>
+      <li><b class="en">Delay slot:</b> الأمر اللي بعد الـ branch <b>بيتنفذ دايمًا</b> سواء الـ branch اتاخد ولا لأ. MIPS عنده <b>1 delay slot</b>. الـ compiler يحط فيه أمر مفيد، ولو مقدرش يحط NOP.</li>
+    </ul>
+    <div class="box key"><b class="t">الـ 3 حلول للـ Control Hazard (سؤال مضمون)</b>
+      <ul>
+        <li><b class="en">Stall:</b> وقّف الـ fetch لحد ما النتيجة تبان. خسارة كبيرة، ومحتاج hardware للـ stall.</li>
+        <li><b class="en">Delayed branch:</b> الأمر اللي بعد الـ branch بيتنفذ دايمًا. الـ compiler بيرتب، ويحط NOP لما ميقدرش (حوالي 50%). ده اللي original MIPS كان بيعمله.</li>
+        <li><b class="en">Predict:</b> خمّن وكمّل، ولو طلع غلط الغي (squash). الخسارة <b>بس لما التخمين يغلط</b>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- LAWS -->
+  <section class="lec" id="laws">
+    <div class="lec-h"><h2>كل القوانين في مكان واحد</h2></div>
+    <div class="tbl"><table>
+      <tr><th>القانون</th><th>بيتستخدم إمتى</th></tr>
+      <tr><td class="en">cycles = k + n − 1</td><td>عدد الـ cycles لـ n tasks على k segments</td></tr>
+      <tr><td class="en">time = (k + n − 1) × tp</td><td>وقت الـ pipeline</td></tr>
+      <tr><td class="en">non-pipe = n × tn, tn = k × tp</td><td>وقت من غير pipeline</td></tr>
+      <tr><td class="en">S = n·tn / ((k+n−1)·tp)</td><td>الـ speedup، وأقصاه k</td></tr>
+      <tr><td class="en">CPU time = IC × CPI × clock</td><td>وقت تشغيل البرنامج</td></tr>
+      <tr><td class="en">Avg CPI = Σ (fraction × CPIi)</td><td>لما يديك نسب الأوامر</td></tr>
+      <tr><td class="en">pipelined time = 1 × clock + overhead</td><td>متوسط وقت الأمر بالـ pipeline</td></tr>
+      <tr><td class="en">S = unpipelined time / pipelined time</td><td>مثال 4.4 / 1.2</td></tr>
+      <tr><td class="en">CPI pipe = 1 + stalls/instr</td><td>لما فيه stalls</td></tr>
+      <tr><td class="en">S = CPI unpipe / (1 + stalls)</td><td>لما الـ clock واحد في الحالتين</td></tr>
+    </table></div>
+    <div class="box"><b class="t">وحدات</b>1 GHz يعني clock = 1 ns. و 10⁶ ns = 1 ms. و 10⁹ ns = 1 s.</div>
+  </section>
+
+  <!-- TRAPS -->
+  <section class="lec" id="traps">
+    <div class="lec-h"><h2>فخاخ الصح والغلط</h2></div>
+    <p class="idea">الدكتور بيغيّر كلمة واحدة في الجملة. دي الجمل الصح، فلو جات متغيرة تبقى False:</p>
+    <div class="tbl"><table>
+      <tr><th>الجملة الصح</th><th>الفخ المتوقع</th></tr>
+      <tr><td>بعد ما الـ pipeline يتملي، بيطلع output كل <b>clock واحدة</b></td><td>"more than one clock"</td></tr>
+      <tr><td>R-type فيه <b>three</b> registers</td><td>"two registers" (دي I-type)</td></tr>
+      <tr><td>الـ pipelining <b>مش</b> بيسرّع الـ instruction الواحدة</td><td>"reduces latency of each instruction"</td></tr>
+      <tr><td>MISD <b>نظري</b> ومش تجاري</td><td>"widely available"</td></tr>
+      <tr><td>AVR و PIC فيهم <b>two-stage</b> pipeline</td><td>"five-stage"</td></tr>
+      <tr><td>لما أمر يعمل stall، اللي <b>بعده</b> بيقف واللي قبله بيكمل</td><td>"earlier instructions are stalled"</td></tr>
+      <tr><td>الـ load-use محتاج <b>stall + forwarding</b></td><td>"forwarding alone solves it"</td></tr>
+      <tr><td>أمر على مسافة 3 <b>مفيهوش</b> hazard</td><td>"has a hazard"</td></tr>
+      <tr><td>الـ NOP بالـ compiler <b>بيعتمد</b> على الـ compiler</td><td>"does not depend"</td></tr>
+      <tr><td>قرار الـ branch في <b>EX</b> (الأصل)</td><td>"in IF"</td></tr>
+      <tr><td>Ideal CPI للـ pipeline ≈ <b>1</b></td><td>رقم تاني</td></tr>
+      <tr><td>Structural hazard بيتحل بزيادة الـ <b>resources</b></td><td>"cannot be eliminated"</td></tr>
+      <tr><td>Load و Store <b>بس</b> اللي بيلمسوا الـ memory في RISC</td><td>"all instructions access memory"</td></tr>
+    </table></div>
+  </section>
+
+  <div class="go">
+    <span>خلصت القراية؟ اختبر نفسك دلوقتي بالـ 50 سؤال:</span>
+    <a href="exam.html">افتح الامتحان التجريبي</a>
+  </div>
+</div>
+
+</body>
+</html>

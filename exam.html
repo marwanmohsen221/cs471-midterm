@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS471 Midterm Drill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column; a sticky pipeline-style status bar on top; question map grid; question cards. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --surface-2:#f6f8fa; --ink:#18212e; --muted:#5a6676; --line:#d8dee6;
+  --accent:#1d5c63; --accent-ink:#ffffff; --accent-soft:#dcebec;
+  --good:#1c7a45; --good-bg:#e1f3e8; --bad:#b4302a; --bad-bg:#fbe5e3; --flag:#a56a00; --flag-bg:#fdf0d5;
+  --font-ar:"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ar);font-size:15px;line-height:1.75;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 80px;display:grid;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:grid;gap:6px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);direction:ltr;text-align:right}
+h1{margin:0;font-size:26px;line-height:1.3;text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:65ch}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface-2)}
+.seg button{border:0;background:transparent;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.warn{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;direction:ltr}
+.cell{position:relative;height:34px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.cell.ans{background:var(--accent-soft);color:var(--ink);border-color:var(--accent)}
+.cell.ok{background:var(--good-bg);border-color:var(--good);color:var(--good);font-weight:600}
+.cell.no{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);font-weight:600}
+.cell.fl::after{content:"";position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--flag)}
+.map-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.map-legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);display:inline-block}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600;background:var(--accent-soft)}
+
+.score{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:10px}
+.score h2{margin:0;font-size:18px}
+.score .big{font-family:var(--font-mono);font-size:40px;font-weight:600;line-height:1;direction:ltr;text-align:right}
+.score .rows{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+.score .rows b{color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;background:var(--accent)}
+
+.section-h{margin:8px 0 0;font-size:15px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:10px}
+.section-h::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;scroll-margin-top:90px}
+.card.flagged{border-color:var(--flag);box-shadow:inset 0 0 0 1px var(--flag)}
+.card-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.num{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent)}
+.tag{font-family:var(--font-mono);font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);direction:ltr}
+.flag-btn{margin-inline-start:auto;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.flag-btn[aria-pressed="true"]{border-color:var(--flag);background:var(--flag-bg);color:var(--flag)}
+.qtext{direction:ltr;text-align:left;font-size:16px;line-height:1.6;font-weight:500;margin:0}
+pre.code{direction:ltr;text-align:left;margin:0;font-family:var(--font-mono);font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;line-height:1.6}
+.opts{display:grid;gap:8px;direction:ltr}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:15px;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;font-weight:600;border:1px solid var(--line);color:var(--muted)}
+.opt .lbl{flex:1;min-width:0}
+.opt .mark{flex:none;font-size:12px;font-weight:600;font-family:var(--font-ar);direction:rtl}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.right .k{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.right .mark{color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt.wrong .mark{color:var(--bad)}
+
+.reveal{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
+.verdict{font-weight:700;font-size:14px}
+.verdict.ok{color:var(--good)} .verdict.no{color:var(--bad)} .verdict.skip{color:var(--muted)}
+.blk{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.blk h4{margin:0 0 4px;font-size:13px;color:var(--accent);letter-spacing:.02em}
+.blk p{margin:0}
+.answer{border-color:var(--good);background:var(--good-bg)}
+.answer h4{color:var(--good)}
+.answer .val{direction:ltr;display:inline-block;font-weight:700}
+.why{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.why li{display:flex;gap:8px;align-items:flex-start}
+.why .k{flex:none;font-family:var(--font-mono);font-size:12px;font-weight:600;min-width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);margin-top:3px}
+.why li.ok .k{border-color:var(--good);color:var(--good)}
+.why li.no .k{border-color:var(--bad);color:var(--bad)}
+details.deep{border:1px solid var(--flag);background:var(--flag-bg);border-radius:9px;padding:8px 12px}
+details.deep summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--flag)}
+details.deep .in{margin-top:6px}
+.hint{font-size:13px;color:var(--muted)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--muted)}
+@media (max-width:520px){ h1{font-size:22px} .bar{gap:8px} .stats{gap:10px} }
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl">
+  <header class="top">
+    <div class="eyebrow">CS471 · Parallel Processing · Lectures 1–4</div>
+    <h1>امتحان تجريبي للميدترم</h1>
+    <p class="sub">30 سؤال MCQ و 20 صح وغلط من المحاضرات الأربعة وأسئلة الكويزات. في وضع الامتحان جاوب على كله ودوس "سلّم". في وضع التدريب الإجابة والشرح بيظهروا أول ما تختار. علّم على أي سؤال مش فاهمه عشان يظهرلك شرح إضافي وترجعله بعدين.</p>
+  </header>
+
+  <div class="bar" id="bar">
+    <div class="seg" role="group" aria-label="الوضع">
+      <button id="mode-exam" data-mode="exam">وضع الامتحان</button>
+      <button id="mode-practice" data-mode="practice">وضع التدريب</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="actions">
+      <button class="btn primary" id="submit">سلّم واعرض الإجابات</button>
+      <button class="btn" id="reset">ابدأ من جديد</button>
+    </div>
+  </div>
+
+  <section id="score" class="score" hidden></section>
+
+  <div>
+    <div class="map" id="map"></div>
+  </div>
+  <div class="map-legend">
+    <span><i class="sw" style="background:var(--accent-soft);border-color:var(--accent)"></i>اتجاوب</span>
+    <span><i class="sw" style="background:var(--good-bg);border-color:var(--good)"></i>صح</span>
+    <span><i class="sw" style="background:var(--bad-bg);border-color:var(--bad)"></i>غلط</span>
+    <span><i class="sw" style="background:var(--flag);border-color:var(--flag);border-radius:50%"></i>متعلّم عليه</span>
+  </div>
+
+  <div class="filters" role="group" aria-label="عرض">
+    <span>اعرض:</span>
+    <button class="chip" id="f-all" data-filter="all">الكل</button>
+    <button class="chip" id="f-flag" data-filter="flag">المتعلّم عليها</button>
+    <button class="chip" id="f-wrong" data-filter="wrong">الغلط بس</button>
+    <button class="chip" id="f-un" data-filter="un">لسه مجاوبتهاش</button>
+  </div>
+
+  <main id="list"></main>
+</div>
+
+<script>
+const Q = [
+/* ============ MCQ ============ */
+{t:'mcq', L:1,
+q:`In ______, many processing units work under the supervision of a common control unit. All processors receive the same instruction from the control unit but operate on different items of data.`,
+o:['SISD','SIMD','MISD','MIMD'], a:1,
+exp:`تصنيف Flynn (سنة 1966) بيقسّم الأجهزة حسب عدد الـ instruction streams وعدد الـ data streams اللي بتتعالج في نفس الوقت. الوصف هنا: control unit واحدة بتبعت نفس الـ instruction لكل الـ processing units، وكل unit بتشتغل على data مختلفة. ده بالظبط تعريف SIMD (Single Instruction Multiple Data). أمثلته: GPUs والـ vector/array processors، ومثال المحاضرة: تحريك شخصية في لعبة (X+2, Y-1 بتتطبق على كل النقاط مرة واحدة).`,
+why:[`غلط: SISD فيها processor واحد بينفّذ instruction واحدة على data واحدة، مفيش processing units كتير.`,
+`صح: نفس الـ instruction من control unit مشتركة، والـ data مختلفة لكل processor.`,
+`غلط: MISD عكس المطلوب: instructions كتير شغالة على نفس الـ data.`,
+`غلط: في MIMD كل processor بينفذ instruction مختلفة على data مختلفة، مش نفس الـ instruction.`],
+deep:`طريقة حفظ سهلة: الحرفين الأولانيين بيقولوا عدد الـ Instructions (Single/Multiple)، والحرفين الأخرانيين عدد الـ Data.<br>• SISD: رخيص وقليل استهلاك الطاقة، بس سرعته محدودة (single core). استخدامه: microcontrollers و older mainframes.<br>• SIMD: كفء جدًا لما تعمل نفس العملية على data كتير، بس محدود بتطبيقات معينة. استخدامه: GPUs و scientific processing.<br>• MISD: نظري بس، استخدامه في space shuttle flight control (real-time fault detection).<br>• MIMD: ممتاز للـ multitasking، بس أغلى وأعقد. استخدامه: أغلب الـ PCs واللابتوبات والموبايلات.`},
+
+{t:'mcq', L:1,
+q:`Which Flynn class is only of theoretical interest (no practical commercial system), but is useful where real-time fault detection is critical, such as space shuttle flight control systems?`,
+o:['SISD','SIMD','MISD','MIMD'], a:2,
+exp:`المحاضرة قالت إن MISD (Multiple Instruction Single Data) هيكل "only of theoretical interest" لأن مفيش نظام عملي اتبنى بيه تجاريًا. فيه أكتر من processor شغالين على نفس الـ data، وده مفيد في الـ fault detection: لو كذا processor حسبوا نفس الحاجة وطلّعوا نتايج مختلفة يبقى فيه error. عشان كده استخدامه في space shuttle flight control.`,
+why:[`غلط: SISD هي أبسط وأشهر نوع (كل الـ single-processor systems)، مش نظرية.`,
+`غلط: SIMD موجودة عمليًا جدًا في الـ GPUs.`,
+`صح: MISD نظرية، مش متاحة تجاريًا، ومفيدة في real-time fault detection.`,
+`غلط: MIMD هي الموجودة في أغلب الأجهزة الحديثة.`],
+deep:`ركّز على الكلمات المفتاحية في السؤال: "theoretical" أو "not available commercially" أو "space shuttle" أو "fault detection" يبقى الإجابة MISD على طول. Disadvantage بتاعها: very limited application.`},
+
+{t:'mcq', L:1,
+q:`Most modern PCs, laptops and smartphones are classified (according to Flynn) as:`,
+o:['SISD','SIMD','MISD','MIMD'], a:3,
+exp:`MIMD (Multiple Instruction Multiple Data) معناها processors كتير كل واحد بينفذ instructions مختلفة على data مختلفة، إما independently أو بـ shared memory. ده اللي بيخلي الجهاز يعمل multitasking ويشغّل كذا program في نفس الوقت. المحاضرة قالت إن أغلب الـ multiprocessor و multicomputer systems بتتصنف MIMD، واستخدامها: Most modern PCs, Laptops, and Smart Phones.`,
+why:[`غلط: SISD استخدامها microcontrollers و older mainframes.`,
+`غلط: SIMD استخدامها GPUs و scientific processing.`,
+`غلط: MISD نظرية ومش موجودة تجاريًا.`,
+`صح: الأجهزة الحديثة multicore وبتشغّل programs مختلفة على data مختلفة في نفس الوقت.`],
+deep:`MIMD Advantage: great for multitasking. Disadvantage: architecture أعقد فبالتالي أغلى. افتكر: موبايلك فيه كذا core، كل core ممكن يشغّل app مختلف على data مختلفة، يبقى Multiple Instruction + Multiple Data.`},
+
+{t:'mcq', L:1,
+q:`The time for an instruction to complete is called:`,
+o:['Latency','Throughput','Clock cycle','CPI'], a:0,
+exp:`من Pipelining Terminology في المحاضرة الأولى:<br>• Latency: الوقت اللي الـ instruction الواحدة بتاخده لحد ما تخلص.<br>• Throughput: عدد الـ instructions اللي بتخلص في الثانية.<br>• Clock cycle: كل حاجة في الـ CPU بتتحرك مع بعض متزامنة بالـ clock.<br>• CPI: clock cycles per instruction.<br>فالسؤال بيسأل عن "time for an instruction to complete" يبقى Latency.`,
+why:[`صح: Latency = وقت إتمام instruction واحدة.`,
+`غلط: Throughput عدد instructions في الثانية، مش وقت instruction واحدة (ده سؤال الكويز الأصلي).`,
+`غلط: Clock cycle هي النبضة اللي بتزامن كل حاجة في الـ CPU.`,
+`غلط: CPI متوسط عدد الـ clock cycles لكل instruction، رقم مش زمن.`],
+deep:`أهم فكرة: الـ pipelining بيحسّن الـ Throughput مش الـ Latency. في مثال الغسيل، Ann (A) لسه بتاخد 30+40+20 = 90 دقيقة (latency ثابتة)، لكن متوسط الوقت لكل task نزل لحوالي 52.5 دقيقة لأن الـ tasks متداخلة (throughput زاد). وكمان فيه مصطلح Processor Cycle: الوقت اللازم لتحريك instruction خطوة واحدة في الـ pipeline.`},
+
+{t:'mcq', L:1,
+q:`A processor uses a pipeline with k = 5 segments and a clock cycle tp = 20 ns to execute n = 100 instructions. Total time to complete the 100 instructions =`,
+o:['2080 ns','2000 ns','10000 ns','2100 ns'], p:[1,2,3,0], a:0,
+exp:`القانون: Total time = (k + n − 1) × tp.<br>أول task بياخد k × tp عشان يعدي على كل الـ segments، وبعده كل task من الـ (n − 1) الباقيين بيطلع كل clock cycle.<br>= (5 + 100 − 1) × 20 = 104 × 20 = <b>2080 ns</b>.`,
+why:[`صح: (5 + 99) × 20 = 2080 ns.`,
+`غلط: 2000 = n × tp بس، كده نسيت إن أول instruction محتاج k cycles عشان يملا الـ pipeline.`,
+`غلط: 10000 = n × k × tp، ده وقت الـ non-pipelined processor مش الـ pipelined.`,
+`غلط: 2100 = (k + n) × tp، نسيت تطرح 1.`],
+deep:`ده نفس سؤال الكويز (k=4, tp=10, n=200: (4+199)×10 = 2030 ns). خطوات الحل دايمًا:<br>1) عدد الـ cycles = k + n − 1.<br>2) اضرب في tp.<br>والـ non-pipeline: tn = k × tp، وإجمالي = n × tn.`},
+
+{t:'mcq', L:1,
+q:`For the same pipeline (k = 5, tp = 20 ns, n = 100) and assuming tn = k·tp, the speedup S of the pipeline over the equivalent non-pipelined processor is approximately:`,
+o:['4.81','5','4.17','3.88'], a:0,
+exp:`S = (n × tn) / ((k + n − 1) × tp).<br>tn = k × tp = 5 × 20 = 100 ns، فالـ non-pipeline = 100 × 100 = 10000 ns.<br>الـ pipeline = 2080 ns (من السؤال اللي قبله).<br>S = 10000 / 2080 ≈ <b>4.81</b>.`,
+why:[`صح: 10000 / 2080 = 4.8077.`,
+`غلط: 5 = k، ده الـ theoretical maximum speedup لما n تكون كبيرة جدًا (n ≫ k − 1)، مش القيمة الفعلية لـ n = 100.`,
+`غلط: رقم مش طالع من أي حساب صحيح.`,
+`غلط: 3.88 ده مثال المحاضرة (k = 4, n = 100: 8000/2060)، مش الأرقام دي.`],
+deep:`لما n تكبر، (k + n − 1) بتقرب من n، فالـ S بتقرب من tn / tp. ولو tn = k·tp يبقى S → k. مثال المحاضرة: لو tn = 60 ns و tp = 20 ns يبقى S = 60/20 = 3. يعني الـ speedup الأقصى بيعتمد على نسبة tn إلى tp.`},
+
+{t:'mcq', L:1,
+q:`Four students each have a load of laundry. Washer = 30 min, dryer = 40 min, folder = 20 min. If the laundry is done in a pipelined fashion, the total time is:`,
+o:['6 hours','3.5 hours','3 hours','4 hours'], a:1,
+exp:`في الـ pipelined laundry، الـ stage الأبطأ (الـ dryer = 40 دقيقة) هو اللي بيحدد الإيقاع.<br>Total = أول washer (30) + 4 مرات dryer (4 × 40 = 160) + آخر folder (20) = 210 دقيقة = <b>3.5 ساعة</b>.<br>أما الـ sequential: 4 × (30+40+20) = 360 دقيقة = 6 ساعات.`,
+why:[`غلط: 6 ساعات ده الـ sequential laundry.`,
+`صح: 30 + 160 + 20 = 210 دقيقة = 3.5 ساعة.`,
+`غلط: 3 ساعات = 180 دقيقة، ده لو اتجاهلت أول washer.`,
+`غلط: 4 ساعات مش طالعة من أي طريقة حساب صحيحة.`],
+deep:`ملاحظات المحاضرة على المثال:<br>• Task ليه series of stages.<br>• Stage dependency (لازم تغسل قبل ما تنشّف).<br>• tasks كتير بـ overlapping stages.<br>• Slowest stage determines the finish time.<br>• مفيش speedup للـ task الواحدة (A لسه بياخد 90 دقيقة)، بس متوسط وقت الـ task = 210/4 = 52.5 دقيقة &lt; 90.`},
+
+{t:'mcq', L:1,
+q:`The theoretical maximum speedup that a k-segment pipeline can provide is:`,
+o:['n','k','k + n − 1','1 / k'], p:[0,3,2,1], a:1,
+exp:`لما عدد الـ tasks n يكبر جدًا، k + n − 1 تقرب من n، فالـ speedup = n·tn / (n·tp) = tn / tp. ولو افترضنا tn = k·tp (نفس وقت التنفيذ في الحالتين) يبقى S = <b>k</b>، يعني عدد الـ segments. وفي الـ balanced pipeline: Speedup = Number of pipe stages.`,
+why:[`غلط: n عدد الـ tasks، والـ speedup مش بيزيد مع n بلا حدود.`,
+`صح: الحد الأقصى النظري = k (عدد الـ segments).`,
+`غلط: k + n − 1 ده عدد الـ clock cycles لتنفيذ n tasks.`,
+`غلط: 1/k مالهاش علاقة؛ الـ pipeline بيسرّع مش بيبطّأ.`],
+deep:`ليه عمليًا مش بنوصل لـ k؟<br>1) الـ segments مختلفة في الوقت، والـ clock لازم يساوي أبطأ segment، فالباقي بيضيّع وقت.<br>2) مش دايمًا صح إن الـ non-pipe circuit ليه نفس الـ delay.<br>3) الـ hazards والـ stalls.<br>4) الـ pipeline overhead (register setup, clock skew).`},
+
+{t:'mcq', L:1,
+q:`A 4-segment pipeline has segment delays of 30 ns, 45 ns, 25 ns and 40 ns. The pipeline clock cycle must be chosen equal to:`,
+o:['35 ns (the average)','45 ns','25 ns','140 ns'], a:1,
+exp:`المحاضرة قالت: "The clock cycle must be chosen to equal the time delay of the segment with the maximum propagation time". يعني الـ clock = أبطأ segment = <b>45 ns</b>، لأن كل الـ registers بتتحرك على نفس الـ clock، ولو الـ clock أقصر من 45 الـ segment ده مش هيلحق يخلص.`,
+why:[`غلط: المتوسط ميشتغلش؛ الـ segment اللي بياخد 45 مش هيلحق في 35.`,
+`صح: الـ clock = أكبر delay = 45 ns.`,
+`غلط: 25 أسرع segment، الباقيين مش هيلحقوا.`,
+`غلط: 140 = مجموع الـ delays، ده وقت تنفيذ task واحدة بدون pipeline.`],
+deep:`النتيجة: الـ segments الأسرع (30، 25، 40) بتضيّع وقت وهي مستنية الـ clock الجاي. وده سبب إن الـ pipeline مش بيوصل للـ maximum speedup. المثالي هو balanced pipeline: كل الـ stages نفس المدة. وده نفس فكرة "slowest stage determines the finish time" في الغسيل (الـ dryer).`},
+
+{t:'mcq', L:1,
+q:`How many clock cycles are required to complete n = 6 tasks using a k = 4 segment pipeline?`,
+o:['24','10','9','6'], a:2,
+exp:`عدد الـ cycles = k + (n − 1) = 4 + 5 = <b>9</b>. ده بالظبط الـ space-time diagram في المحاضرة (Fig. 9-4): T1 بيخلص بعد 4 cycles، وبعدين كل cycle بيخلص task جديدة (T2..T6 = 5 cycles زيادة).`,
+why:[`غلط: 24 = k × n، ده بدون pipeline.`,
+`غلط: 10 = k + n، نسيت تطرح 1.`,
+`صح: 4 + 6 − 1 = 9.`,
+`غلط: 6 = n، كأن كل task بتاخد cycle واحدة من الأول، ونسيت الـ fill.`],
+deep:`"No matter how many segments there are in the system, once the pipeline is full, it takes only one clock period to obtain an output." عشان كده بعد أول k cycles، كل cycle بيطلع output. ارسم الجدول: صفوف = segments، أعمدة = clock cycles، وكل task بتنزل diagonal.`},
+
+{t:'mcq', L:2,
+q:`The instruction ADD [R0],[R1],[R3], which adds the values at the memory addresses in R1 and R3 and stores the result at the address in R0, is considered:`,
+o:['SISC','RISC','CISC','None'], a:2,
+exp:`CISC (Complex Instruction Set Computer) بتعمل instruction معقدة بتنفّذ أكتر من operation وبتستخدم hardware معقد. هنا الـ instruction بتقرأ من الـ memory مرتين، وتجمع، وتكتب في الـ memory: كله في instruction واحدة. ده مستحيل في RISC لأن في RISC الـ load و store بس هم اللي بيتعاملوا مع الـ memory. نفس الكلام لـ MAC R0,R1,R3 يعني R0 = (R1 × R3) + R0، وده سؤال الكويز.`,
+why:[`غلط: SISC مش مصطلح موجود أصلًا (distractor).`,
+`غلط: RISC بيشتغل على registers بس؛ مفيش instruction ALU بتقرأ من الـ memory مباشرة.`,
+`صح: complex instruction بتعمل memory reads + add + memory write.`,
+`غلط: فيه إجابة صحيحة وهي CISC.`],
+deep:`أمثلة RISC من المحاضرة: ADD R0,R1,R3 يعني R0 = R1 + R3 (registers بس)، و LD R0,[R1] (تحميل من address في R1). أمثلة CISC: MAC R0,R1,R3 و ADD [R0],[R1],[R3]. القاعدة: لو فيه [ ] (memory) في instruction حسابية، أو أكتر من operation في instruction واحدة يبقى CISC.`},
+
+{t:'mcq', L:2,
+q:`MIPS (RISC) instructions are divided into three types:`,
+o:['I, R, S','R, I, J','S, B, J','None'], a:1,
+exp:`الـ RISC instruction format بيتقسم 3 أنواع: <b>R</b> (Register)، <b>I</b> (Immediate)، <b>J</b> (Jump). كلهم 32 bit وكلهم بيبدأوا بـ 6-bit opcode.`,
+why:[`غلط: S مش نوع في MIPS (موجود في RISC-V، مش في منهجنا).`,
+`صح: R-type و I-type و J-type.`,
+`غلط: S و B أنواع RISC-V، مش MIPS.`,
+`غلط: فيه إجابة صحيحة.`],
+deep:`الـ formats:<br>• R: op(6) | rs(5) | rt(5) | rd(5) | shamt(5) | funct(6)<br>• I: op(6) | rs(5) | rt(5) | offset/immediate(16)<br>• J: op(6) | address(26)<br>المجموع دايمًا 32. أمثلة R: add, sub, slt, and, or, xor, nor. أمثلة I: addi, lw, sw, beq, bne. أمثلة J: j, jal.`},
+
+{t:'mcq', L:2,
+q:`In the I-type instruction format, the immediate (offset) field has ____ bits.`,
+o:['5','6','16','26'], a:2,
+exp:`I-type: op(6) + rs(5) + rt(5) + immediate(<b>16</b>) = 32 bit. المحاضرة: "I-type instructions specify two registers and a 16-bit immediate value".`,
+why:[`غلط: 5 bits ده حجم أي register field (rs, rt, rd) أو shamt.`,
+`غلط: 6 bits ده الـ opcode أو الـ funct.`,
+`صح: 16-bit immediate.`,
+`غلط: 26 bits ده الـ jump target في J-type.`],
+deep:`ليه register field = 5 bits؟ لأن RISC فيه 32 register، و 2^5 = 32. ده سؤال الكويز (rs = 5 bits). احفظ الأرقام: 6 / 5 / 5 / 5 / 5 / 6 للـ R، و 6 / 5 / 5 / 16 للـ I، و 6 / 26 للـ J.`},
+
+{t:'mcq', L:2,
+q:`J-type instructions follow the 6-bit opcode with a jump target address of:`,
+o:['16 bits','21 bits','26 bits','32 bits'], a:2,
+exp:`J-type: op(6) + jump target address(<b>26</b>) = 32 bit. المحاضرة: "J-type instructions follow the opcode with a 26-bit jump target".`,
+why:[`غلط: 16 ده الـ immediate في I-type.`,
+`غلط: 21 مش موجود في أي format.`,
+`صح: 6 + 26 = 32.`,
+`غلط: 32 ده حجم الـ instruction كلها، مش الـ address field.`],
+deep:`أمثلة J-format في MicroMIPS: j L (op = 2) و jal L (op = 3). أما jr rs فهي R-format (op = 0, fn = 8) رغم إنها jump. الـ 4 unconditional jump instructions: j, jr, jal, syscall.`},
+
+{t:'mcq', L:2,
+q:`In the IF stage, the program counter is updated as PC = PC + 4 because:`,
+o:['The pipeline has 4 stages after IF','Each instruction is 32 bits and each memory cell is 8 bits','RISC has 4 classes of instructions','Each register is 4 bytes wide only in MIPS'], a:1,
+exp:`في الـ Instruction Fetch، الـ processor بيبعت الـ PC للـ memory، يجيب الـ instruction، ويزوّد الـ PC بـ 4. السبب في المحاضرة: كل memory cell = 8 bit (1 byte)، والـ instruction = 32 bit، فالـ instruction بتاخد 4 cells. عشان تروح للـ instruction اللي بعدها تزوّد 4.`,
+why:[`غلط: عدد الـ stages ملوش علاقة بعنوان الـ instruction الجاية.`,
+`صح: 32 bit ÷ 8 bit = 4 bytes لكل instruction.`,
+`غلط: RISC ليه 3 classes (ALU, Load/Store, Branch)، وكمان ملهاش علاقة.`,
+`غلط: حجم الـ register مش هو اللي بيحدد زيادة الـ PC؛ اللي بيحدده حجم الـ instruction.`],
+deep:`في مثال الـ 5-stage pipeline في المحاضرة: PC = 0x1f00 قبل الـ fetch، وبعده PC = 0x1f04. وفي الـ branch لو الشرط اتحقق: PC = TB (PC + 100) بدل PC + 4.`},
+
+{t:'mcq', L:2,
+q:`In the 5-stage pipeline, which stage is a "dummy" stage (does no work) for the instruction ADD R0, R1, R3?`,
+o:['IF','ID','EX','MEM'], a:3,
+exp:`ADD بتشتغل على registers بس: IF (fetch)، ID (decode + قراية R1 و R3)، EX (الـ ALU يجمع R1 + R3)، MEM (<b>مفيش حاجة</b> لأنها مش load ولا store)، WB (تكتب النتيجة في R0). المحاضرة قالت صراحة: "Memory access stage is a dummy state in the Add instruction".`,
+why:[`غلط: IF لازم لكل instruction عشان تتجاب من الـ memory.`,
+`غلط: ID بيعمل decode ويقرا الـ registers R1 و R3.`,
+`غلط: EX فيه الـ ALU بيجمع.`,
+`صح: MEM مش مستخدم لأن ADD مش بتتعامل مع الـ data memory.`],
+deep:`قارن:<br>• ADD: الـ MEM فاضي.<br>• LD R1,24[R0]: EX يحسب الـ effective address (R0 + 24)، MEM يقرا، WB يكتب في R1. كل الـ stages شغالة.<br>• Branch (BEZ R2,100): الـ target والشرط بيتحسبوا بدري، والـ Execute و Memory و Store "has no additional work to do". عشان كده الـ branch بيكمل في 2 cycles.`},
+
+{t:'mcq', L:2,
+q:`In the lecture example, every register contains its number plus 100 and every data memory location contains 99. For lw $8, 4($29), the effective address calculated in the EX stage is:`,
+o:['133','129','108','99'], p:[1,2,3,0], a:0,
+exp:`lw rt, imm(rs): الـ effective address = base register + offset. $29 = 29 + 100 = 129، والـ offset = 4، فالـ address = 129 + 4 = <b>133</b>. وده بيظهر في Cycle 3 في المحاضرة (EX: lw و ALU result = 133).`,
+why:[`صح: 129 + 4 = 133.`,
+`غلط: 129 قيمة $29 بس، نسيت تزود الـ offset.`,
+`غلط: 108 القيمة القديمة لـ $8 (الـ destination)، مالهاش دعوة بالعنوان.`,
+`غلط: 99 القيمة اللي هتتقري من الـ memory في MEM وتتكتب في $8، مش الـ address.`],
+deep:`تتبع كامل: Cycle 2 (ID): بيقرا $29 = 129 والـ offset 4. Cycle 3 (EX): 129 + 4 = 133. Cycle 4 (MEM): يقرا من address 133 فيلاقي 99. Cycle 5 (WB): $8 = 99. وبالمثل sub $2, $4, $5 = 104 − 105 = −1.`},
+
+{t:'mcq', L:2,
+q:`Why does the 5-stage RISC pipeline use separate instruction memory and data memory?`,
+o:['To increase the total memory size','To avoid conflict between IF and MEM, which both access memory in the same clock cycle','To eliminate control hazards caused by branches','To remove all data hazards between ALU instructions'], a:1,
+exp:`الـ IF بيقرا instruction من الـ memory، والـ MEM (في load/store) بيقرا أو يكتب data في الـ memory. في الـ pipeline الاتنين ممكن يحصلوا في نفس الـ clock cycle لـ instructions مختلفة. لو فيه memory واحدة يحصل conflict، وده <b>structural hazard</b>. الحل: separate instruction memory و data memory (أو separate instruction و data cache).`,
+why:[`غلط: الهدف مش الحجم.`,
+`صح: بيمنع الـ memory conflict بين IF و MEM (structural hazard).`,
+`غلط: الـ control hazards سببها الـ branches وتغيير الـ PC، مش الـ memory.`,
+`غلط: الـ data hazards سببها data dependency، وحلها forwarding أو stalls.`],
+deep:`مثال المحاضرة للـ structural hazard: لو فيه memory port واحد، في CC4 الـ Load بتعمل data access في MEM، وفي نفس الوقت Instr i+3 بتعمل IF، فيحصل conflict. الحل: stall لـ Instr i+3 cycle واحدة (bubble)، فمفيش instruction بتخلص في CC8.`},
+
+{t:'mcq', L:3,
+q:`______ occur when the pipeline changes the order of read/write accesses to operands so that the order differs from the order seen by sequentially executing instructions on an unpipelined processor.`,
+o:['Structural hazards','Data hazards','Control hazards','None'], a:1,
+exp:`ده تعريف الـ <b>Data Hazard</b> حرفيًا من المحاضرة. السبب data dependency: instruction محتاجة تقرا register لسه instruction قبلها مكتبتهوش (مثلًا ADD R1,R2,R3 بعدها SUB R4,R1,R5).`,
+why:[`غلط: Structural hazard سببه resource conflicts (hardware مش كفاية).`,
+`صح: ترتيب read/write للـ operands اتغير، يعني data dependency.`,
+`غلط: Control hazard سببه تغيير الـ PC (branches).`,
+`غلط: فيه إجابة صحيحة.`],
+deep:`الـ 3 classes of hazards:<br>• Structural: resource conflicts. مثال: write port واحد واتنين عايزين يكتبوا في نفس الـ cycle، أو memory واحدة.<br>• Data: data dependency.<br>• Control: PC changes (branches).<br>Hazard = حالة بتمنع الـ instruction الجاية إنها تتنفذ في الـ clock cycle بتاعها.`},
+
+{t:'mcq', L:3,
+q:`Consider (with forwarding): I1: SUB R4, R1, R3 · I2: ADD R5, R4, R6 · I3: OR R7, R4, R5 · I4: AND R8, R4, R9. The hazard in I2 is resolved by forwarding from the ______ pipeline register.`,
+code:`I1: SUB R4, R1, R3
+I2: ADD R5, R4, R6
+I3: OR  R7, R4, R5
+I4: AND R8, R4, R9`,
+o:['IF/ID','ID/EX','EX/MEM','MEM/WB'], a:2,
+exp:`I2 محتاجة R4 اللي I1 بتحسبه. I2 جاية <b>مباشرة</b> بعد I1، فلما I2 تبقى في EX (CC4)، I1 تكون في MEM، والنتيجة بتاعتها موجودة في الـ <b>EX/MEM</b> pipeline register. الـ forwarding unit بيبعتها للـ ALU على طول. الشرط: EX/MEM.RegWrite = 1 و EX/MEM.RegisterRd (R4) = ID/EX.RegisterRs (R4)، فـ ForwardA = 2.`,
+why:[`غلط: IF/ID بيحمل الـ instruction بعد الـ fetch، مش نتيجة ALU.`,
+`غلط: ID/EX بيحمل operands الـ instruction الحالية نفسها.`,
+`صح: instruction ورا بعض مباشرة يبقى EX/MEM hazard.`,
+`غلط: MEM/WB للـ instruction اللي قبلها بـ 2 (زي I3 مع I1).`],
+deep:`قاعدة سريعة:<br>• المسافة 1 (instruction ورا بعض) يبقى EX/MEM.<br>• المسافة 2 يبقى MEM/WB.<br>• المسافة 3 مفيش hazard، لأن الـ register file بيكتب في النص الأول من الـ cycle ويقرا في النص التاني.<br>ده نفس سؤال الكويز (Inst1: ADD R1..., Inst2: SUB R1,R1,R5، الإجابة EXE/MEM).`},
+
+{t:'mcq', L:3,
+q:`For the same sequence, when I3 (OR R7, R4, R5) is in its EX stage, the forwarding unit sets:`,
+code:`I1: SUB R4, R1, R3
+I2: ADD R5, R4, R6
+I3: OR  R7, R4, R5     ; rd = R7, rs = R4, rt = R5
+I4: AND R8, R4, R9`,
+o:['ForwardA = 1, ForwardB = 2','ForwardA = 2, ForwardB = 1','ForwardA = 2, ForwardB = 2','ForwardA = 0, ForwardB = 0'], a:0,
+exp:`I3 في EX في CC5. في الوقت ده: I1 في WB، فقيمة R4 في <b>MEM/WB</b>. و I2 في MEM، فقيمة R5 في <b>EX/MEM</b>.<br>• rs = R4 من MEM/WB، يعني ForwardA = <b>1</b>.<br>• rt = R5 من EX/MEM، يعني ForwardB = <b>2</b>.<br>(الترميز: 0 = register file، 1 = MEM/WB، 2 = EX/MEM.)`,
+why:[`صح: R4 (rs) من MEM/WB = 1، و R5 (rt) من EX/MEM = 2.`,
+`غلط: عكست الاتنين؛ R4 جاية من I1 اللي بعيدة بـ 2 instructions، مش 1.`,
+`غلط: R4 مش في EX/MEM؛ I1 عدّت الـ MEM خلاص.`,
+`غلط: فيه hazard فعلًا على الـ operand الاتنين.`],
+deep:`معادلة MEM/WB hazard للـ ForwardA:<br>if (MEM/WB.RegWrite = 1 and MEM/WB.RegisterRd = ID/EX.RegisterRs and (EX/MEM.RegisterRd ≠ ID/EX.RegisterRs or EX/MEM.RegWrite = 0)) then ForwardA = 1.<br>الشرط الأخير مهم: لو نفس الـ register اتكتب مرتين ورا بعض (add $1,$2,$3 ثم add $1,$1,$4)، ناخد القيمة الأحدث من EX/MEM. هنا EX/MEM.Rd = R5 ≠ R4، فالـ MEM/WB forwarding مسموح.`},
+
+{t:'mcq', L:3,
+q:`For the same sequence (5-stage pipeline with forwarding), the first hazard will be detected by the forwarding unit in clock cycle:`,
+code:`I1: SUB R4, R1, R3
+I2: ADD R5, R4, R6
+I3: OR  R7, R4, R5
+I4: AND R8, R4, R9`,
+o:['1','2','3','4'], a:3,
+exp:`I1: IF(1) ID(2) EX(3) MEM(4) WB(5).<br>I2: IF(2) ID(3) EX(4).<br>الـ forwarding unit بيقارن EX/MEM.RegisterRd بـ ID/EX.RegisterRs لما الـ instruction المتأثرة تكون في EX. I2 بتدخل EX في <b>CC4</b>، وفي اللحظة دي I1 في MEM والـ EX/MEM فيه R4، فالـ hazard بيتكشف ويتعمل forwarding في cycle 4.`,
+why:[`غلط: في CC1 بس I1 في IF.`,
+`غلط: في CC2 لسه I2 بيتعمل لها fetch.`,
+`غلط: في CC3 I2 في ID والقيمة لسه بتتحسب في EX بتاع I1. (لو السؤال عن hazard detector في الـ decode بدون forwarding ممكن يبقى 3، بس على forwarding الإجابة 4.)`,
+`صح: CC4، أول مرة I2 في EX و I1 في MEM.`],
+deep:`ده نفس سؤال الكويز بالظبط (الإجابة كانت 4). ارسم الجدول دايمًا:<br>CC: 1 2 3 4 5 6<br>I1: IF ID EX MEM WB<br>I2: &nbsp;&nbsp; IF ID EX MEM WB<br>I3: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; IF ID EX ...<br>وشوف امتى الـ instruction المحتاجة توصل EX.`},
+
+{t:'mcq', L:3,
+q:`A program has an instruction count of 2 × 10⁶, an average CPI of 1.5, and runs on a processor with a clock cycle time of 0.5 ns. The CPU time is:`,
+o:['1.5 ms','6 ms','3 ms','0.75 ms'], a:0,
+exp:`CPU time = IC × CPI × Clock cycle time<br>= 2 × 10⁶ × 1.5 × 0.5 ns = 1.5 × 10⁶ ns = <b>1.5 ms</b>.<br>(10⁶ ns = 1 ms)`,
+why:[`صح: 2M × 1.5 × 0.5 ns = 1.5 ms.`,
+`غلط: 6 ms لو استخدمت 2 ns (خلطت بين 2 GHz و 2 ns).`,
+`غلط: 3 ms = عدد الـ clock cycles (3 × 10⁶) × 1 ns، نسيت تضرب في 0.5.`,
+`غلط: 0.75 ms لو ضربت في 0.25 بالغلط.`],
+deep:`المعادلات الأساسية:<br>• CPU time = CPU clock cycles × Clock cycle time<br>• CPI = CPU clock cycles / IC، يعني clock cycles = IC × CPI<br>• CPU time = IC × CPI × Clock cycle time<br>• Instruction time = CPI × Clock cycle time<br>• Clock cycle time = 1 / clock rate (1 GHz = 1 ns)`},
+
+{t:'mcq', L:3,
+q:`An unpipelined processor has a 2 ns clock cycle. ALU operations (50%) take 4 cycles, branches (20%) take 2 cycles, and memory operations (30%) take 5 cycles. Pipelining adds 0.2 ns overhead. The speedup from pipelining (ideal CPI = 1) is approximately:`,
+o:['3.55','3.90','7.80','3.25'], p:[1,2,3,0], a:0,
+exp:`1) Average CPI unpipelined = 0.5×4 + 0.2×2 + 0.3×5 = 2 + 0.4 + 1.5 = 3.9<br>2) Avg instruction time unpipelined = 2 ns × 3.9 = 7.8 ns<br>3) Avg instruction time pipelined = CPI × clock + overhead = 1 × 2 + 0.2 = 2.2 ns<br>4) Speedup = 7.8 / 2.2 ≈ <b>3.55</b>`,
+why:[`صح: 7.8 / 2.2 = 3.545.`,
+`غلط: 3.9 = 7.8 / 2، نسيت الـ overhead (0.2 ns).`,
+`غلط: 7.8 ده الـ avg instruction time unpipelined، مش الـ speedup.`,
+`غلط: مش طالعة من الخطوات الصح.`],
+deep:`مثال المحاضرة: clock 1 ns، ALU 40% و branch 20% بـ 4 cycles، memory 40% بـ 5 cycles، overhead 0.2:<br>Unpipelined = 1 × [(0.4+0.2)×4 + 0.4×5] = 4.4 ns<br>Pipelined = 1×1 + 0.2 = 1.2 ns<br>Speedup = 4.4/1.2 ≈ 3.7.<br>الـ overhead سببه stage imbalance و pipeline register setup و clock skew.`},
+
+{t:'mcq', L:3,
+q:`If the CPI of the unpipelined processor is 5 and the pipeline has on average 0.25 stall cycles per instruction (same clock cycle in both), the speedup is:`,
+o:['5','4','3.75','6.25'], a:1,
+exp:`لما الـ clock cycle واحد في الحالتين: Speedup = CPI unpipelined / CPI pipelined.<br>CPI pipelined = 1 + stalls per instruction = 1 + 0.25 = 1.25<br>Speedup = 5 / 1.25 = <b>4</b>.`,
+why:[`غلط: 5 ده لو مفيش stalls خالص (ideal).`,
+`صح: 5 / 1.25 = 4.`,
+`غلط: 3.75 لو طرحت بدل ما تقسم: 5 − 1.25.`,
+`غلط: 6.25 لو ضربت: 5 × 1.25.`],
+deep:`القانون الكامل:<br>Speedup = (CPI unpip × Clock unpip) / (CPI pip × Clock pip)<br>ولو الـ clocks متساوية: Speedup = CPI unpip / (1 + Number of stalls per instruction).<br>كل stall بيزود الـ CPI وبيقلل الـ speedup.`},
+
+{t:'mcq', L:3,
+q:`LD R1, 0(R2) is followed immediately by SUB R4, R1, R5. Even with full forwarding, how many stall cycles are needed?`,
+o:['0','1','2','3'], a:1,
+exp:`الـ LD بتجيب R1 من الـ memory في MEM، فالقيمة بتبقى جاهزة بس في نهاية CC4 (في MEM/WB). الـ SUB محتاجة R1 في بداية CC4 (EX بتاعها). "Forwarding cannot be backward" يعني مينفعش نرجّع data لورا في الزمن. فلازم <b>stall واحد</b> (bubble)، وبعدها نعمل MEM/WB forwarding.`,
+why:[`غلط: الـ forwarding لوحده مينفعش هنا لأن الـ data مش موجودة لسه في EX/MEM.`,
+`صح: stall cycle واحدة + MEM/WB forwarding.`,
+`غلط: 2 stalls ده لو مفيش forwarding خالص (زي ADD ثم SUB في جدول الـ stall-only).`,
+`غلط: كتير جدًا.`],
+deep:`ده اسمه load-use hazard أو "unavoidable" data hazard. الجدول:<br>LD: IF ID EX MEM WB<br>SUB: &nbsp;IF ID bubble EX MEM WB<br>(أو IF ID ID EX، لأن الـ ID بيتكرر). وفي جدول المحاضرة مع AND و OR بعدها: كله بيتأخر cycle، و OR ملهاش hazard.`},
+
+{t:'mcq', L:4,
+q:`The hazard detection unit (in the ID stage) stalls the pipeline for a load-use hazard when:`,
+o:['ID/EX.MemRead = 1 and ID/EX.RegRT equals IF/ID.RegRS or IF/ID.RegRT','EX/MEM.RegWrite = 1 and EX/MEM.RegisterRd = ID/EX.RegisterRs','MEM/WB.RegWrite = 0','IF/ID.MemWrite = 1 and the instruction is a branch'], a:0,
+exp:`الشرط من المحاضرة:<br>If ((ID/EX.MemRead = 1) & ((ID/EX.RegRT = IF/ID.RegRS) || (ID/EX.RegRT = IF/ID.RegRT)))<br>• MemRead = 1 معناها إن الـ instruction اللي في EX هي LW (الوحيدة اللي بتقرا memory).<br>• RT بتاعها هو الـ destination في الـ load.<br>• لو الـ instruction اللي في ID محتاجة الـ register ده كـ RS أو RT، يبقى stall.`,
+why:[`صح: ده شرط الـ hazard detection unit للـ load.`,
+`غلط: ده شرط الـ forwarding unit (EX/MEM forwarding، ForwardA = 2)، مش الـ stall.`,
+`غلط: RegWrite = 0 معناها مفيش كتابة، فمفيش hazard.`,
+`غلط: مش الشرط ده خالص.`],
+deep:`تأثير الـ stall: بيكرر الـ ID stage للـ instruction الحالية عن طريق الحفاظ على قيم IF/ID للـ cycle الجاية (ومنع تحديث الـ PC)، وبعدها MEM/WB forwarding.<br>Stall implementation #1: الـ compiler يحط NOP (SLL $0, $0, 0)، بس المشكلة إننا بنعتمد على الـ compiler.<br>Stall implementation #2: hardware hazard detection unit.`},
+
+{t:'mcq', L:4,
+q:`In the original 5-stage design, branches have a penalty of 3 cycles. Moving the branch-target address calculation and branch condition decision from EX to ID reduces the penalty (when the branch is taken) to:`,
+o:['0 cycles','1 cycle','2 cycles','3 cycles'], a:1,
+exp:`الأصل: الـ instructions بتتعمل لها fetch في IF (stage 1)، وقرار الـ branch في EX (stage 3)، فالـ PC الجاي مش معروف قبل cycles. الحل: ننقل (a) حساب الـ branch target و (b) قرار الشرط للـ ID. كده الـ PC الجديد معروف بعد cycle واحدة، فالـ penalty = <b>1 cycle</b> لما الـ branch يبقى taken (instruction واحدة بس بتتعمل لها zap/flush).`,
+why:[`غلط: لسه فيه instruction اتعمل لها fetch غلط ولازم تتعمل لها flush.`,
+`صح: Reduced penalty (1 cycle) when branch taken.`,
+`غلط: 2 مش الرقم اللي في المحاضرة بعد التحسين.`,
+`غلط: 3 ده الـ penalty قبل التحسين.`],
+deep:`مثال المحاضرة:<br>10: beq r1, r2, L<br>14: add r3, r0, r3 (اتعمل لها fetch، ولو taken تبقى NOP)<br>18: sub r5, r4, r6<br>25: L: or r3, r2, r4<br>قبل التحسين add و sub الاتنين بيتعمل لهم zap. بعد التحسين add بس. التحسين محتاج bypasses جديدة للـ ID stage.`},
+
+{t:'mcq', L:4,
+q:`Which control hazard solution assumes an outcome and continues fetching, has a performance penalty only when the guess is wrong, and requires hardware to "squash" instructions?`,
+o:['Stall','Delayed branch','Predict','Forwarding'], a:2,
+exp:`Control Hazard Solutions في المحاضرة:<br>• Stall: وقف الـ fetch لحد ما النتيجة تبان. significant penalty.<br>• Delayed branch: الـ instruction اللي بعد الـ branch بتتنفذ دايمًا، والـ compiler يرتب، ويحط NOP لو مقدرش (~50%).<br>• <b>Predict</b>: افترض نتيجة وكمّل fetch، و undo لو غلط. penalty بس لو التوقع غلط، ومحتاج hardware يعمل squash.`,
+why:[`غلط: Stall فيه penalty دايمًا.`,
+`غلط: Delayed branch بيعتمد على الـ compiler مش التخمين.`,
+`صح: Predict.`,
+`غلط: Forwarding حل للـ data hazards مش الـ control hazards.`],
+deep:`افتكر: Stall = "استنى". Delay slot = "الـ instruction اللي بعد الـ branch بتتنفذ في كل الأحوال" (MIPS عنده 1 branch delay slot، وده اللي كان original MIPS بيعمله). Predict = "خمّن، ولو غلط امسح". والـ flush/zap = clear IF/ID وتحويل الـ instruction الغلط لـ NOP.`},
+
+{t:'mcq', L:3,
+q:`Using ONLY stalls (no forwarding, hazard detector in the decode stage), how many clock cycles are needed to execute this sequence?`,
+code:`ADD R1, R2, R3
+SUB R4, R1, R5
+AND R6, R1, R7
+OR  R8, R1, R9
+XOR R10, R1, R11`,
+o:['9','10','11','13'], a:2,
+exp:`من جدول المحاضرة "Solve Data Hazard With Stall":<br>ADD: IF ID EX MEM WB (CC1–CC5)<br>SUB: IF Stall Stall ID EX MEM WB (بيخلص CC8)<br>AND, OR, XOR بيتأخروا معاها بـ 2 cycles.<br>بدون hazards: 5 + 5 − 1 = 9 cycles. الـ stalls زودت 2، فالإجمالي = <b>11</b> (XOR بتكتب في CC11).`,
+why:[`غلط: 9 ده بدون أي stalls (ideal).`,
+`غلط: 10 لو stall واحد بس.`,
+`صح: 9 + 2 stalls = 11.`,
+`غلط: 13 لو حطيت stalls لكل instruction بتستخدم R1، بس بعد ما SUB تستنى، R1 بيبقى جاهز للباقيين.`],
+deep:`ليه SUB بتستنى 2 مش 3؟ ADD بتكتب R1 في WB (CC5) في النص الأول من الـ cycle، و SUB تقدر تقرا في النص التاني من نفس الـ cycle، فالـ ID بتاع SUB يبقى في CC5.<br>"when an instruction is stalled, all instructions issued later are also stalled"، عشان كده AND و OR و XOR اتأخروا. ومع الـ forwarding مش محتاجين أي stall هنا (ADD مش load).`},
+
+/* ============ TRUE / FALSE ============ */
+{t:'tf', L:1,
+q:`No matter how many segments there are in the system, once the pipeline is full, it takes more than one clock period to obtain an output.`,
+o:['True','False'], a:1,
+exp:`المحاضرة بتقول العكس: "once the pipeline is full, it takes <b>only one</b> clock period to obtain an output". بعد ما أول task يخلص (k cycles)، كل clock cycle بيطلع task جديد.`,
+why:[`غلط: الجملة قالت "more than one" والصح "only one".`,
+`صح: الجملة غلط.`],
+deep:`ده سؤال الكويز بالنص. خلي بالك من كلمات زي "more than" و "only" في الـ T/F، الدكتور بيغير كلمة واحدة. Total cycles = k + n − 1: الـ k أول task والـ (n − 1) واحد كل cycle.`},
+
+{t:'tf', L:2,
+q:`In addition to the opcode, R-type instructions specify two registers, a shift amount field, and a function field.`,
+o:['True','False'], a:1,
+exp:`R-type بيحدد <b>three registers</b>: rs (source 1) و rt (source 2) و rd (destination)، بالإضافة لـ shamt و funct. الجملة قالت "two" فهي غلط. الـ "two registers" ده وصف الـ I-type.`,
+why:[`غلط: R-type فيها 3 registers مش 2.`,
+`صح: الجملة غلط (three registers).`],
+deep:`سؤال الكويز بالنص. R: op | rs | rt | rd | shamt | funct = 6+5+5+5+5+6 = 32. I: two registers + 16-bit immediate. J: opcode + 26-bit target.`},
+
+{t:'tf', L:1,
+q:`Pipelining reduces the execution time (latency) of each individual instruction.`,
+o:['True','False'], a:1,
+exp:`الـ pipelining <b>مش</b> بيسرّع الـ task الواحدة: "No speed-up for the individual task" (A لسه بياخد 30+40+20). اللي بيتحسن هو متوسط وقت الـ task أو الـ throughput بسبب الـ overlapping.`,
+why:[`غلط: الـ latency للـ instruction الواحدة مش بتقل (وممكن تزيد شوية بسبب الـ overhead).`,
+`صح: الـ pipelining بيزود الـ throughput مش بيقلل الـ latency.`],
+deep:`Essence of pipelining: "Start executing one instruction before completing the previous one". Significance: Make fast CPUs. يعني السرعة جاية من التداخل مش من تسريع كل instruction لوحدها.`},
+
+{t:'tf', L:1,
+q:`MISD architectures are widely available commercially and are used in most modern PCs.`,
+o:['True','False'], a:1,
+exp:`MISD نظرية فقط: "no practical system has been constructed using this organization"، و"Very limited application so not available commercially". الأجهزة الحديثة MIMD.`,
+why:[`غلط: MISD مش متاحة تجاريًا.`,
+`صح: الجملة غلط في الجزئين.`],
+deep:`استخدام MISD الوحيد المذكور: space shuttle flight control (real-time fault detection).`},
+
+{t:'tf', L:1,
+q:`In a pipeline, the slowest stage determines the finish time.`,
+o:['True','False'], a:0,
+exp:`صح. في مثال الغسيل الـ dryer (40 دقيقة) هو اللي حدد إمتى آخر task يخلص. وفي الـ pipeline الـ clock cycle لازم يساوي أبطأ segment.`,
+why:[`صح: Slowest stage determines the finish time.`,
+`غلط: الجملة صح من المحاضرة.`],
+deep:`عشان كده الأفضل balanced pipeline (كل الـ stages نفس المدة). في الحالة دي: Time per instruction (pipelined) = Time per instr (unpipelined) / Number of pipe stages، و Speedup = Number of pipe stages.`},
+
+{t:'tf', L:2,
+q:`In RISC, only load and store operations affect memory; all other operations apply to data in registers.`,
+o:['True','False'], a:0,
+exp:`صح. RISC Properties: all operations on data apply to data in registers، و only load and store affect memory (load: من الـ memory للـ register، store: من الـ register للـ memory).`,
+why:[`صح: ده من خصائص RISC.`,
+`غلط: الجملة صح.`],
+deep:`باقي خصائص RISC: 32 registers، 3 classes of instructions (ALU، Load/Store، Branches/Jumps)، few instruction formats، كل الـ instructions نفس الحجم. Load/Store بتستخدم base register + offset = effective address.`},
+
+{t:'tf', L:2,
+q:`Instruction pipelining is also called Instruction Level Parallelism (ILP).`,
+o:['True','False'], a:0,
+exp:`صح. المحاضرة التانية: "Pipeline is also called Instruction Level Parallelism (ILP)". الـ instruction pipelining تقنية لتنفيذ ILP جوه processor واحد، بتقسم الـ instructions لخطوات متتالية عشان كل جزء في الـ processor يفضل مشغول.`,
+why:[`صح: Pipeline = ILP.`,
+`غلط: الجملة صح.`],
+deep:`تعريف مهم: "A processor is said to be fully pipelined if it can fetch an instruction on every cycle." لو فيه delays بتمنع fetch instruction جديدة، يبقى الـ processor مش fully pipelined.`},
+
+{t:'tf', L:2,
+q:`Every MIPS instruction starts with a 6-bit opcode.`,
+o:['True','False'], a:0,
+exp:`صح. "Every instruction starts with a 6-bit opcode" سواء R أو I أو J.`,
+why:[`صح: الـ opcode دايمًا 6 bits.`,
+`غلط: الجملة صح.`],
+deep:`في R-type الـ opcode = 0، والعملية بتتحدد بالـ funct field (6 bits) زي add = 32، sub = 34، and = 36، or = 37. في I و J الـ opcode نفسه بيحدد العملية: lw = 35، sw = 43، beq = 4، j = 2.`},
+
+{t:'tf', L:2,
+q:`The Atmel AVR and the PIC microcontrollers each have a five-stage pipeline.`,
+o:['True','False'], a:1,
+exp:`غلط. المحاضرة: "The Atmel AVR and the PIC microcontroller each have a <b>two-stage</b> pipeline". الـ 5 stages هو الـ classic RISC pipeline: IF, ID, EX, MEM, WB.`,
+why:[`غلط: هما two-stage.`,
+`صح: الجملة غلط.`],
+deep:`كمان: الـ IBM Stretch project (1956–1961) هو اللي اقترح مصطلحات Fetch و Decode و Execute. والـ classic RISC pipeline = Instruction fetch، Instruction decode & register fetch، Execute، Memory access، Register write back.`},
+
+{t:'tf', L:3,
+q:`Structural hazards can be eliminated by increasing the number of resources, for example by implementing separate instruction and data caches.`,
+o:['True','False'], a:0,
+exp:`صح. "Structural hazards are easy to eliminate – increase the number of resources (for example, implement a separate instruction and data cache)". الحل البديل: stall لواحدة من الـ instructions لحد ما الـ resource يفضى.`,
+why:[`صح: زيادة الـ resources بتشيل الـ conflict.`,
+`غلط: الجملة صح.`],
+deep:`مثال: processor فيه register write port واحد واتنين instructions عايزين يكتبوا في نفس الـ cycle. الحل: stall لواحدة، أو تزود write ports.`},
+
+{t:'tf', L:3,
+q:`When an instruction is stalled, all instructions issued EARLIER than the stalled instruction are also stalled.`,
+o:['True','False'], a:1,
+exp:`غلط. الـ instructions اللي <b>بعد</b> الـ stalled instruction هي اللي بتتوقف. أما اللي <b>قبلها</b> فلازم تكمل، "since otherwise the hazard will never clear". ومفيش instructions جديدة بتتعمل لها fetch أثناء الـ stall.`,
+why:[`غلط: لو اللي قبلها وقفت، الـ hazard عمره ما هيتحل.`,
+`صح: الجملة غلط؛ اللي بعدها بس اللي بتقف.`],
+deep:`افتكرها كده: الـ SUB مستنية ADD تكتب R1. لو وقفت ADD كمان، R1 عمره ما هيتكتب. فـ ADD (earlier) تكمل، و AND و OR (later) تستنى مع SUB.`},
+
+{t:'tf', L:3,
+q:`In the sequence below (5-stage, register file writes in the first half and reads in the second half of a cycle), I4 has a data hazard that requires forwarding.`,
+code:`I1: SUB R4, R1, R3
+I2: ADD R5, R4, R6
+I3: OR  R7, R4, R5
+I4: AND R8, R4, R9`,
+o:['True','False'], a:1,
+exp:`I4 بتقرا R4 اللي اتكتب في I1. I1 بتعمل WB في CC5، و I4 بتعمل ID (قراية الـ registers) في CC5 برضه. الـ register file بيكتب في النص الأول من الـ cycle ويقرا في النص التاني، فـ I4 بتقرا القيمة الصح. يعني <b>مفيش hazard</b>. (و R9 مش بيتكتب في أي instruction قبلها.)`,
+why:[`غلط: المسافة 3 instructions، والـ split cycle بيحلها.`,
+`صح: مفيش hazard في I4.`],
+deep:`ده نفس مثال المحاضرة: ADD R1,R2,R3 ثم SUB و AND فيهم hazard، لكن "the OR instruction has no hazard because the add instruction prepares R1 in the first half of the clock cycle while the OR instruction needs R1 till the second half". وفي الكويز Inst4: ORR8,R11,R1 نفس الفكرة.`},
+
+{t:'tf', L:3,
+q:`Forwarding alone can resolve the hazard between LD R1, 0(R2) and an immediately following SUB R4, R1, R5 without any stall.`,
+o:['True','False'], a:1,
+exp:`غلط. الـ load بيجيب الـ data في MEM (نهاية CC4)، والـ SUB محتاجاها في بداية CC4. "Forwarding cannot be backward"، فلازم stall واحد على الأقل، وبعده MEM/WB forwarding.`,
+why:[`غلط: محتاج stall + forwarding.`,
+`صح: الجملة غلط.`],
+deep:`"Sometimes stall is necessary beside forwarding". EX/MEM forwarding مش هينفع لأن الـ data لسه متحملتش من الـ memory، و MEM/WB forwarding مش هينفع لأن SUB بتنفذ في CC4. الحل: bubble ثم MEM/WB forwarding.`},
+
+{t:'tf', L:3,
+q:`In the sequence below (with forwarding), there is a data hazard in I3.`,
+code:`I1: SUB R4, R1, R3
+I2: ADD R5, R4, R6
+I3: OR  R7, R4, R5
+I4: AND R8, R4, R9`,
+o:['True','False'], a:0,
+exp:`صح. I3 بتقرا R4 (من I1، المسافة 2) و R5 (من I2، المسافة 1). الاتنين لسه متكتبوش في الـ register file لما I3 تقرا في ID (CC4)، فلازم forwarding: R4 من MEM/WB و R5 من EX/MEM.`,
+why:[`صح: فيه hazard (بل اتنين)، وبيتحلوا بالـ forwarding.`,
+`غلط: I3 بتعتمد على I1 و I2.`],
+deep:`سؤال الكويز: "Is there a hazard in Inst3" وإجابته True. القاعدة: المسافة 1 أو 2 يبقى hazard (EX/MEM أو MEM/WB). المسافة 3 أو أكتر مفيش hazard.`},
+
+{t:'tf', L:4,
+q:`MIPS has one branch delay slot: the instruction following the branch is always executed, whether the branch is taken or not.`,
+o:['True','False'], a:0,
+exp:`صح. "MIPS has 1 branch delay slot. Whether the branch taken or not, the instruction following branch is always executed". الـ compiler بيحاول يحط instruction مفيدة هناك، ولو مقدرش يحط NOP.`,
+why:[`صح: ده تعريف الـ delay slot.`,
+`غلط: الجملة صح.`],
+deep:`الـ delay slot محتاج software (compiler) يستغله. بيقدر يملاه بحاجة مفيدة في حوالي 50% بس من الحالات، والباقي NOP. وده اللي original MIPS كان بيعمله.`},
+
+{t:'tf', L:3,
+q:`Tomasulo's algorithm is an out-of-order execution technique that can be used instead of stalls to handle data hazards.`,
+o:['True','False'], a:0,
+exp:`صح. المحاضرة ذكرت إن الـ stalls بتأثر على الأداء، فالأفضل تقنيات تانية: (1) Forward and Bypassing، (2) Out of Order execution (Tomasulo's algorithm).`,
+why:[`صح: Tomasulo = out-of-order execution.`,
+`غلط: الجملة صح.`],
+deep:`الـ hazards ممكن تتكشف بالـ software (compiler) أو بالـ hardware. الـ hardware يقدر يكشف الـ data hazard ويعمل stall. الـ compiler يقدر يعمل stalls أو يختار تقنية تانية.`},
+
+{t:'tf', L:4,
+q:`Handling a data hazard by having the compiler insert a NOP (SLL $0, $0, 0) does not depend on the compiler.`,
+o:['True','False'], a:1,
+exp:`غلط. Stall Implementation #1: الـ compiler بيكشف الـ hazard ويحط NOP. المحاضرة ذكرت المشكلة صراحة: "Problem: we have to rely on the compiler". عشان كده فيه Implementation #2: hardware hazard detection unit.`,
+why:[`غلط: الطريقة دي معتمدة كليًا على الـ compiler.`,
+`صح: الجملة غلط.`],
+deep:`NOP = SLL $0, $0, 0، instruction مش بتغير أي register (لأن $0 دايمًا صفر). بتعدي الـ pipeline كـ bubble.`},
+
+{t:'tf', L:3,
+q:`ForwardA = 2 means the first ALU operand (Rs) is taken from the EX/MEM pipeline register.`,
+o:['True','False'], a:0,
+exp:`صح. في المحاضرة: if (EX/MEM.RegWrite = 1 and EX/MEM.RegisterRd = ID/EX.RegisterRs) then ForwardA = 2 (2 refer to EX/MEM register). و ForwardA = 1 يعني MEM/WB، و 0 يعني register file (no hazard).`,
+why:[`صح: 2 = EX/MEM.`,
+`غلط: الجملة صح.`],
+deep:`ForwardA للـ operand الأول (Rs)، و ForwardB للتاني (Rt). الاتنين MUX selectors قبل الـ ALU. الـ forwarding unit inputs: ID/EX.RegisterRs، ID/EX.RegisterRt، EX/MEM.RegisterRd، MEM/WB.RegisterRd، EX/MEM.RegWrite، MEM/WB.RegWrite.`},
+
+{t:'tf', L:3,
+q:`The ideal CPI on a pipelined processor is almost always 1.`,
+o:['True','False'], a:0,
+exp:`صح. "The ideal CPI on a pipelined processor is almost always 1"، لأن في الحالة المثالية بيخلص instruction كل cycle. مع الـ stalls: CPI pipelined = 1 + Number of stalls per instruction.`,
+why:[`صح: ideal CPI = 1.`,
+`غلط: الجملة صح.`],
+deep:`بنستخدمها في حساب الـ speedup: Avg instruction time pipelined = CPI (1) × Clock cycle + overhead. ولو مفيش overhead و clock واحد: Speedup = CPI unpipelined / (1 + stalls).`},
+
+{t:'tf', L:4,
+q:`In the original 5-stage design, the branch decision occurs in the IF stage, so the next PC is known immediately after fetching the branch.`,
+o:['True','False'], a:1,
+exp:`غلط. الـ instructions بتتعمل لها fetch في IF (stage 1)، لكن قرار الـ branch في <b>EX (stage 3)</b>، فالـ PC الجاي مش معروف قبل 2 cycles. ده سبب الـ control hazard. التحسين نقل القرار للـ ID (stage 2).`,
+why:[`غلط: القرار في EX مش IF.`,
+`صح: الجملة غلط.`],
+deep:`Control hazard: بيحصل لما يبقى فيه control instruction (زي BEQ) والـ PC اللي بعدها مش معروف لحد ما الـ branch يتحسب. الحل الأساسي: Stall + Zap/Flush: منع تحديث الـ PC، clear IF/ID، وتحويل الـ instruction اللي اتجابت غلط لـ NOP.`}
+];
+
+</script>
+<script>
+(function(){
+  Q.forEach(q=>{ if(q.p){ q.o=q.p.map(k=>q.o[k]); q.why=q.p.map(k=>q.why[k]); q.a=q.p.indexOf(q.a); } });
+  const KEY='cs471-midterm-v1';
+  const LET=['A','B','C','D'];
+  let S={mode:'exam',ans:{},flag:{},submitted:false,filter:'all'};
+  try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s) S=Object.assign(S,s);}catch(e){}
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+
+  const $=id=>document.getElementById(id);
+  const has=i=>S.ans[i]!==undefined;
+  const revealed=i=>S.submitted||(S.mode==='practice'&&has(i));
+  const correct=i=>has(i)&&S.ans[i]===Q[i].a;
+  const nMcq=Q.filter(q=>q.t==='mcq').length;
+
+  function visible(i){
+    if(S.filter==='flag') return !!S.flag[i];
+    if(S.filter==='wrong') return revealed(i)?!correct(i):(S.submitted&&!has(i));
+    if(S.filter==='un') return !has(i);
+    return true;
+  }
+
+  function cardHTML(i){
+    const q=Q[i], r=revealed(i), fl=!!S.flag[i], my=S.ans[i];
+    let h='<article class="card'+(fl?' flagged':'')+'" id="q'+(i+1)+'">';
+    h+='<div class="card-h"><span class="num">Q'+(i+1)+'</span>'+
+       '<span class="tag">'+(q.t==='mcq'?'MCQ':'True / False')+'</span>'+
+       '<span class="tag">Lecture '+q.L+'</span>'+
+       '<button class="flag-btn" data-flag="'+i+'" aria-pressed="'+fl+'">'+(fl?'متعلّم عليه ✓':'علّم للمراجعة')+'</button></div>';
+    h+='<p class="qtext">'+q.q+'</p>';
+    if(q.code) h+='<pre class="code">'+q.code+'</pre>';
+    h+='<div class="opts">';
+    q.o.forEach((o,k)=>{
+      let c='opt', mark='';
+      if(r){
+        if(k===q.a){c+=' right'; mark=(my===k)?'إجابتك ✓':'الإجابة الصح';}
+        else if(my===k){c+=' wrong'; mark='إجابتك ✗';}
+      } else if(my===k) c+=' sel';
+      const lock = r ? ' disabled' : '';
+      h+='<button class="'+c+'" data-q="'+i+'" data-o="'+k+'"'+lock+'><span class="k">'+(q.t==='tf'?(k===0?'T':'F'):LET[k])+'</span><span class="lbl">'+o+'</span>'+(mark?'<span class="mark">'+mark+'</span>':'')+'</button>';
+    });
+    h+='</div>';
+    if(r){
+      const v = !has(i)?'<div class="verdict skip">ماجاوبتش على السؤال ده</div>':(correct(i)?'<div class="verdict ok">إجابتك صح</div>':'<div class="verdict no">إجابتك غلط</div>');
+      h+='<div class="reveal">'+v;
+      h+='<div class="blk"><h4>الشرح</h4><p>'+q.exp+'</p></div>';
+      h+='<div class="blk answer"><h4>الإجابة الصحيحة</h4><p><span class="val">'+(q.t==='tf'?q.o[q.a]:LET[q.a]+') '+q.o[q.a])+'</span></p></div>';
+      h+='<div class="blk"><h4>ليه كل اختيار صح أو غلط</h4><ul class="why">';
+      q.why.forEach((w,k)=>{h+='<li class="'+(k===q.a?'ok':'no')+'"><span class="k">'+(q.t==='tf'?(k===0?'T':'F'):LET[k])+'</span><span>'+w+'</span></li>';});
+      h+='</ul></div>';
+      h+='<details class="deep"'+(fl?' open':'')+'><summary>شرح إضافي'+(fl?' (عشان علّمت عليه)':'')+'</summary><div class="in">'+q.deep+'</div></details>';
+      h+='</div>';
+    } else if(fl){
+      h+='<div class="hint">هيظهرلك شرح إضافي للسؤال ده بعد ما تجاوب'+(S.mode==='exam'?' وتسلّم':'')+'.</div>';
+    }
+    return h+'</article>';
+  }
+
+  function renderList(){
+    let h='', lastT='';
+    let shown=0;
+    Q.forEach((q,i)=>{
+      if(!visible(i)) return;
+      if(q.t!==lastT){ h+='<h3 class="section-h">'+(q.t==='mcq'?'الجزء الأول: اختيار من متعدد (MCQ)':'الجزء التاني: صح وغلط (True / False)')+'</h3>'; lastT=q.t; }
+      h+=cardHTML(i); shown++;
+    });
+    if(!shown){
+      const msg={flag:'مفيش أسئلة متعلّم عليها. دوس "علّم للمراجعة" على أي سؤال عشان يظهر هنا.',
+                 wrong:'مفيش أسئلة غلط ظاهرة. في وضع الامتحان لازم تسلّم الأول.',
+                 un:'جاوبت على كل الأسئلة.'}[S.filter]||'';
+      h='<div class="empty">'+msg+'</div>';
+    }
+    $('list').innerHTML=h;
+  }
+
+  function renderCard(i){
+    const el=$('q'+(i+1));
+    if(!el) return;
+    if(!visible(i)){ el.remove(); return; }
+    el.outerHTML=cardHTML(i);
+  }
+
+  function renderMap(){
+    let h='';
+    Q.forEach((q,i)=>{
+      let c='cell';
+      if(revealed(i)) c+= correct(i)?' ok':(has(i)||S.submitted?' no':'');
+      else if(has(i)) c+=' ans';
+      if(S.flag[i]) c+=' fl';
+      h+='<button class="'+c+'" data-go="'+i+'" aria-label="سؤال '+(i+1)+'">'+(i+1)+'</button>';
+    });
+    $('map').innerHTML=h;
+  }
+
+  function counts(){
+    let answered=0, ok=0, okM=0, okT=0, rev=0, flags=0;
+    Q.forEach((q,i)=>{
+      if(has(i)) answered++;
+      if(S.flag[i]) flags++;
+      if(revealed(i)){ rev++; if(correct(i)){ok++; if(q.t==='mcq') okM++; else okT++;} }
+    });
+    return {answered,ok,okM,okT,rev,flags};
+  }
+
+  function renderBar(){
+    const c=counts();
+    let s='<span>اتجاوب <b>'+c.answered+'/'+Q.length+'</b></span><span>متعلّم <b>'+c.flags+'</b></span>';
+    if(S.submitted||S.mode==='practice') s+='<span>صح <b>'+c.ok+'/'+(S.submitted?Q.length:c.rev)+'</b></span>';
+    $('stats').innerHTML=s;
+    $('mode-exam').setAttribute('aria-pressed',S.mode==='exam');
+    $('mode-practice').setAttribute('aria-pressed',S.mode==='practice');
+    const sb=$('submit');
+    sb.hidden = S.submitted || S.mode==='practice';
+    if(!armed.submit) sb.textContent='سلّم واعرض الإجابات';
+    if(!armed.reset) $('reset').textContent='ابدأ من جديد';
+    ['all','flag','wrong','un'].forEach(f=>$('f-'+f).setAttribute('aria-pressed',S.filter===f));
+  }
+
+  function renderScore(){
+    const box=$('score');
+    if(!S.submitted){ box.hidden=true; return; }
+    const c=counts(), pct=Math.round(c.ok/Q.length*100);
+    const msg = pct>=85?'ممتاز، انت جاهز.':pct>=65?'كويس. راجع الغلط والمتعلّم عليه.':'محتاج مراجعة. ابدأ بالغلط بس واقرا الشرح الإضافي.';
+    box.innerHTML='<h2>النتيجة</h2><div class="big">'+c.ok+' / '+Q.length+'</div>'+
+      '<div class="meter"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="rows"><span>MCQ: <b>'+c.okM+' / '+nMcq+'</b></span><span>صح وغلط: <b>'+c.okT+' / '+(Q.length-nMcq)+'</b></span><span>النسبة: <b>'+pct+'%</b></span><span>من غير إجابة: <b>'+(Q.length-c.answered)+'</b></span></div>'+
+      '<p style="margin:0">'+msg+'</p>'+
+      '<div class="actions"><button class="btn" data-filter="wrong">اعرض الغلط بس</button><button class="btn" data-filter="flag">اعرض المتعلّم عليها</button></div>';
+    box.hidden=false;
+  }
+
+  function renderAll(){ renderBar(); renderMap(); renderScore(); renderList(); }
+
+  const armed={submit:false,reset:false};
+  function disarm(){ armed.submit=false; armed.reset=false; $('submit').classList.remove('warn'); $('reset').classList.remove('warn'); }
+
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('button'); if(!t) return;
+    if(t.id!=='submit'&&t.id!=='reset') disarm();
+    if(t.dataset.o!==undefined){
+      const i=+t.dataset.q, k=+t.dataset.o;
+      if(revealed(i)) return;
+      S.ans[i]=k; save(); renderCard(i); renderMap(); renderBar(); return;
+    }
+    if(t.dataset.flag!==undefined){
+      const i=+t.dataset.flag; if(S.flag[i]) delete S.flag[i]; else S.flag[i]=true;
+      save(); renderCard(i); renderMap(); renderBar(); return;
+    }
+    if(t.dataset.go!==undefined){
+      const i=+t.dataset.go;
+      if(!visible(i)){ S.filter='all'; save(); renderAll(); }
+      const el=$('q'+(i+1)); if(el) el.scrollIntoView({block:'start'}); return;
+    }
+    if(t.dataset.mode){ if(S.mode!==t.dataset.mode){ S.mode=t.dataset.mode; save(); renderAll(); } return; }
+    if(t.dataset.filter){ S.filter=t.dataset.filter; save(); renderAll(); if(t.closest('#score')) $('list').scrollIntoView({block:'start'}); return; }
+    if(t.id==='submit'){
+      const left=Q.length-counts().answered;
+      if(left>0 && !armed.submit){ armed.submit=true; t.classList.add('warn'); t.textContent='فاضل '+left+' سؤال من غير إجابة. دوس تاني للتسليم'; return; }
+      disarm(); S.submitted=true; save(); renderAll(); $('score').scrollIntoView({block:'start'}); return;
+    }
+    if(t.id==='reset'){
+      if(!armed.reset){ armed.reset=true; t.classList.add('warn'); t.textContent='هيمسح إجاباتك (العلامات هتفضل). دوس تاني للتأكيد'; return; }
+      disarm(); S.ans={}; S.submitted=false; S.filter='all'; save(); renderAll(); window.scrollTo({top:0}); return;
+    }
+  });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
