@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS471 Model A Drill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one reading column; a sticky pipeline-style status bar on top; question map grid; question cards. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --surface-2:#f6f8fa; --ink:#18212e; --muted:#5a6676; --line:#d8dee6;
+  --accent:#1d5c63; --accent-ink:#ffffff; --accent-soft:#dcebec;
+  --good:#1c7a45; --good-bg:#e1f3e8; --bad:#b4302a; --bad-bg:#fbe5e3; --flag:#a56a00; --flag-bg:#fdf0d5;
+  --font-ar:"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d25; --surface-2:#1c242e; --ink:#e4e9ef; --muted:#97a3b2; --line:#2b3542;
+  --accent:#5fb7bf; --accent-ink:#0b1216; --accent-soft:#1d3436;
+  --good:#5ccf8c; --good-bg:#15301f; --bad:#ff8a80; --bad-bg:#3a1a19; --flag:#f3bd55; --flag-bg:#382a10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ar);font-size:15px;line-height:1.75;
+  padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:860px;margin:0 auto;padding-block:20px 80px;display:grid;gap:16px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:grid;gap:6px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);direction:ltr;text-align:right}
+h1{margin:0;font-size:26px;line-height:1.3;text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:65ch}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface-2)}
+.seg button{border:0;background:transparent;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.warn{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px;direction:ltr}
+.cell{position:relative;height:34px;border-radius:6px;border:1px solid var(--line);background:var(--surface);font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.cell.ans{background:var(--accent-soft);color:var(--ink);border-color:var(--accent)}
+.cell.ok{background:var(--good-bg);border-color:var(--good);color:var(--good);font-weight:600}
+.cell.no{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);font-weight:600}
+.cell.fl::after{content:"";position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--flag)}
+.map-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.map-legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;border:1px solid var(--line);display:inline-block}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:600;background:var(--accent-soft)}
+
+.score{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:10px}
+.score h2{margin:0;font-size:18px}
+.score .big{font-family:var(--font-mono);font-size:40px;font-weight:600;line-height:1;direction:ltr;text-align:right}
+.score .rows{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:14px}
+.score .rows b{color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;background:var(--accent)}
+
+.section-h{margin:8px 0 0;font-size:15px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:10px}
+.section-h::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;scroll-margin-top:90px}
+.card.flagged{border-color:var(--flag);box-shadow:inset 0 0 0 1px var(--flag)}
+.card-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.num{font-family:var(--font-mono);font-weight:600;font-size:14px;color:var(--accent)}
+.tag{font-family:var(--font-mono);font-size:11px;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);direction:ltr}
+.flag-btn{margin-inline-start:auto;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:3px 10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.flag-btn[aria-pressed="true"]{border-color:var(--flag);background:var(--flag-bg);color:var(--flag)}
+.qtext{direction:ltr;text-align:left;font-size:16px;line-height:1.6;font-weight:500;margin:0}
+pre.code{direction:ltr;text-align:left;margin:0;font-family:var(--font-mono);font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;line-height:1.6}
+.opts{display:grid;gap:8px;direction:ltr}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 12px;font-size:15px;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;font-weight:600;border:1px solid var(--line);color:var(--muted)}
+.opt .lbl{flex:1;min-width:0}
+.opt .mark{flex:none;font-size:12px;font-weight:600;font-family:var(--font-ar);direction:rtl}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .k{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.right .k{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.right .mark{color:var(--good)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.opt.wrong .k{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt.wrong .mark{color:var(--bad)}
+
+.reveal{display:grid;gap:10px;border-top:1px dashed var(--line);padding-top:12px}
+.verdict{font-weight:700;font-size:14px}
+.verdict.ok{color:var(--good)} .verdict.no{color:var(--bad)} .verdict.skip{color:var(--muted)}
+.blk{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.blk h4{margin:0 0 4px;font-size:13px;color:var(--accent);letter-spacing:.02em}
+.blk p{margin:0}
+.answer{border-color:var(--good);background:var(--good-bg)}
+.answer h4{color:var(--good)}
+.answer .val{direction:ltr;display:inline-block;font-weight:700}
+.why{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.why li{display:flex;gap:8px;align-items:flex-start}
+.why .k{flex:none;font-family:var(--font-mono);font-size:12px;font-weight:600;min-width:22px;height:22px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);margin-top:3px}
+.why li.ok .k{border-color:var(--good);color:var(--good)}
+.why li.no .k{border-color:var(--bad);color:var(--bad)}
+div.ctx{direction:ltr;text-align:left;font-size:14px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:8px 12px}
+details.deep{border:1px solid var(--flag);background:var(--flag-bg);border-radius:9px;padding:8px 12px}
+details.deep summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--flag)}
+details.deep .in{margin-top:6px}
+.hint{font-size:13px;color:var(--muted)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--muted)}
+@media (max-width:520px){ h1{font-size:22px} .bar{gap:8px} .stats{gap:10px} }
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl">
+  <header class="top">
+    <div class="eyebrow">CS471 · Parallel Processing · Midterm FT 2022 · Model A</div>
+    <h1>امتحان على نمط ميدترم 2022 (Model A)</h1>
+    <p class="sub">50 سؤال MCQ بنفس شكل امتحان الدكتور: (Q1) اختار الإجابة الصح، (Q2) مسائل الـ k-segment pipeline، (Q3) مسائل الـ average instruction time والـ speedup. أول مسألة في كل جزء هي نفس مسألة الامتحان، والباقي بأرقام جديدة. في وضع الامتحان جاوب على كله ودوس "سلّم". في وضع التدريب الإجابة والشرح بيظهروا أول ما تختار. علّم على أي سؤال مش فاهمه عشان يظهرلك شرح إضافي وترجعله بعدين.</p>
+  </header>
+
+  <div class="bar" id="bar">
+    <div class="seg" role="group" aria-label="الوضع">
+      <button id="mode-exam" data-mode="exam">وضع الامتحان</button>
+      <button id="mode-practice" data-mode="practice">وضع التدريب</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="actions">
+      <button class="btn primary" id="submit">سلّم واعرض الإجابات</button>
+      <button class="btn" id="reset">ابدأ من جديد</button>
+    </div>
+  </div>
+
+  <section id="score" class="score" hidden></section>
+
+  <div>
+    <div class="map" id="map"></div>
+  </div>
+  <div class="map-legend">
+    <span><i class="sw" style="background:var(--accent-soft);border-color:var(--accent)"></i>اتجاوب</span>
+    <span><i class="sw" style="background:var(--good-bg);border-color:var(--good)"></i>صح</span>
+    <span><i class="sw" style="background:var(--bad-bg);border-color:var(--bad)"></i>غلط</span>
+    <span><i class="sw" style="background:var(--flag);border-color:var(--flag);border-radius:50%"></i>متعلّم عليه</span>
+  </div>
+
+  <div class="filters" role="group" aria-label="عرض">
+    <span>اعرض:</span>
+    <button class="chip" id="f-all" data-filter="all">الكل</button>
+    <button class="chip" id="f-flag" data-filter="flag">المتعلّم عليها</button>
+    <button class="chip" id="f-wrong" data-filter="wrong">الغلط بس</button>
+    <button class="chip" id="f-un" data-filter="un">لسه مجاوبتهاش</button>
+  </div>
+
+  <main id="list"></main>
+</div>
+
+<script>
+const FL=['SISD','SIMD','MISD','MIMD'];
+const TM=['Latency','Throughput','Clock cycle','CPI'];
+const ISA=['SISC','RISK','CISC','RISC'];
+const HZ=['structural hazard','data hazard','control hazard','None'];
+
+const C2A=`Consider a processor using a pipeline with only <b>four segments</b> (k = 4) with a clock cycle time equal to <b>10 ns</b> (tp = 10) to execute a program with <b>200 instructions</b> (n = 200). Assume that the time it takes to process a task is the same in the pipeline and nonpipelined processors: tn = k·tp.`;
+const C2B=`Consider a processor using a pipeline with <b>six segments</b> (k = 6) and a clock cycle time of <b>20 ns</b> (tp = 20) to execute <b>100 instructions</b> (n = 100). Assume tn = k·tp.`;
+const C2C=`A 4-segment pipeline has segment delays <b>30 ns, 25 ns, 40 ns, 20 ns</b>. It executes <b>50 tasks</b>. The nonpipelined processor takes the <b>sum of all segment delays</b> to finish one task (tn = 30+25+40+20).`;
+const C3A=`Consider an unpipelined processor with a <b>2 ns</b> clock cycle; <b>5 cycles</b> for ALU, <b>4 cycles</b> for branches, <b>6 cycles</b> for memory operations; relative frequencies <b>45%, 10%, 45%</b>. The pipelined processor has a <b>0.2 ns</b> pipeline overhead (stage imbalance, pipeline register setup, clock skew).`;
+const C3B=`Consider an unpipelined processor with a <b>1.5 ns</b> clock cycle; <b>4 cycles</b> for ALU, <b>3 cycles</b> for branches, <b>5 cycles</b> for memory operations; relative frequencies <b>50%, 20%, 30%</b>. The pipelined processor has a <b>0.3 ns</b> pipeline overhead.`;
+const C3C=`Consider an unpipelined processor with a <b>0.5 ns</b> clock cycle; <b>4 cycles</b> for ALU, <b>2 cycles</b> for branches, <b>6 cycles</b> for memory operations; relative frequencies <b>40%, 20%, 40%</b>. The pipelined processor has a <b>0.1 ns</b> pipeline overhead.`;
+
+const Q=[
+/* ============ (Q1) Choose the correct answer ============ */
+{t:'mcq',S:1,L:1,q:'In …… all processors receive the same instruction from the control unit but operate on different items of data.',o:FL,a:1,
+exp:'دي جملة الدكتور حرفياً عن <b>SIMD</b>: فيه <b>control unit واحدة</b> بتبعت <b>نفس الـ instruction</b> لكل الـ processing units، وكل unit بتشتغل على <b>data مختلفة</b>. Single Instruction = نفس الأمر، Multiple Data = بيانات كتير.',
+why:['SISD: processor واحد بينفذ instruction واحدة على data واحدة، مفيش "all processors".','صح: نفس الـ instruction لكل الـ processors مع data مختلفة = Single Instruction Multiple Data.','MISD: instructions مختلفة على نفس الـ data، عكس الجملة.','MIMD: كل processor له instruction خاصة بيه، مش نفس الـ instruction.'],
+deep:'طريقة الحفظ: اقرا الاسم حرفين حرفين. أول حرفين (SI/MI) بيقولوا عدد الـ instructions، وآخر حرفين (SD/MD) عدد الـ data. الجملة فيها "same instruction" يبقى SI، و"different items of data" يبقى MD، فالإجابة SI+MD = SIMD. مثال المحاضرة: تحريك شخصية في game، نفس العملية (X+2, Y−1) على كل النقط.'},
+
+{t:'mcq',S:1,L:1,q:'In …… multiple processors perform operations on different pieces of data, either independently or as part of shared memory space.',o:FL,a:3,
+exp:'<b>MIMD</b>: كذا processor، كل واحد بينفذ <b>instructions مختلفة</b> على <b>data مختلفة</b>، سواء مستقلين أو بيشاركوا memory. ده نظام أغلب الأجهزة الحديثة (PCs, laptops, smartphones).',
+why:['SISD: processor واحد بس، مش multiple processors.','SIMD: كلهم بينفذوا نفس الـ instruction، والجملة مقالتش كده.','MISD: كلهم على نفس الـ data، والجملة بتقول different pieces of data.','صح: multiple processors + different data + independently = MIMD.'],
+deep:'الكلمة المفتاحية "independently or as part of shared memory space": كل processor حر يشتغل لوحده. ده بيفرق MIMD عن SIMD اللي فيه control unit واحدة بتتحكم في الكل. ميزة MIMD: ممتاز للـ multitasking. عيبه: architecture معقدة وغالية.'},
+
+{t:'mcq',S:1,L:1,q:'In …… pipelining can be implemented, but only one instruction will be executed at a time.',o:FL,a:0,
+exp:'<b>SISD</b> = processor واحد. ممكن يعمل <b>pipelining</b> جوه نفسه، لكن في الآخر بينفذ <b>instruction واحدة في المرة</b>. وكل الـ single-processor systems هي SISD.',
+why:['صح: الجملة دي بالنص من سلايد SISD.','SIMD: بينفذ instruction واحدة على كذا data في نفس الوقت، مش "one at a time" بالمعنى ده.','MISD: كذا instruction على نفس الـ data في نفس الوقت.','MIMD: كذا instruction في نفس الوقت على كذا data.'],
+deep:'متتلخبطش من كلمة pipelining. وجود pipeline مش معناه إن النظام بقى SIMD أو MIMD. الـ SISD ممكن يعمل parallel processing بسيط بـ multiple functional units أو pipeline، لكنه لسه single instruction stream. مزاياه: رخيص و low power. استخدامه: microcontrollers والـ mainframes القديمة.'},
+
+{t:'mcq',S:1,L:1,q:'Modern GPUs, containing vector processors and array processors, are commonly …… systems.',o:FL,a:1,
+exp:'الـ <b>GPU</b> بيطبق <b>نفس العملية</b> على <b>آلاف الـ pixels</b> في نفس الوقت، فهو <b>SIMD</b>. المحاضرة قالتها صريحة: Modern GPUs … are commonly SIMD systems.',
+why:['SISD: processor واحد بيعمل instruction واحدة على data واحدة، والـ GPU عكس كده.','صح: vector و array processors = نفس الـ instruction على مصفوفة data.','MISD: نظري تقريباً ومش موجود تجارياً، مش GPUs.','MIMD: الـ PCs والموبايلات، مش الـ GPU كتصنيف أساسي في المحاضرة.'],
+deep:'استخدامات SIMD في المحاضرة: GPUs و scientific processing. ميزته: كفاءة عالية لما تعمل نفس العملية على data كتير. عيبه: محدود في نوع التطبيقات.'},
+
+{t:'mcq',S:1,L:1,q:'In …… multiple processors work on the same data set, performing the same instructions at the same time.',o:FL,a:2,
+exp:'دي جملة المحاضرة عن <b>MISD</b>: كذا processor شغالين على <b>نفس الـ data set</b>. (السلايد كاتب "same instructions"، والمقصود إن الـ data واحدة والـ processors كتير.) المفتاح هنا "the same data set" = <b>Single Data</b>.',
+why:['SISD: processor واحد، مش multiple processors.','SIMD: data مختلفة لكل processor، مش same data set.','صح: same data set + multiple processors = Multiple Instruction Single Data، وده نص السلايد.','MIMD: كل processor على data مختلفة.'],
+deep:'ركّز على الكلمة "same data set" لأنها الوحيدة اللي بتشاور على Single Data مع multiple processors. MISD نظري بالأساس (no practical system)، ميزته real-time fault detection، واستخدامه في space shuttle flight control: كذا processor بيحسبوا نفس الحاجة عشان لو واحد غلط الباقي يكشفه.'},
+
+{t:'mcq',S:1,L:1,q:'…… is the time for an instruction to complete.',o:TM,a:0,
+exp:'<b>Latency</b> = الوقت اللي instruction واحدة بتاخده من أولها لآخرها. الـ pipelining <b>مش بيقلل</b> الـ latency، هو بيزود الـ throughput.',
+why:['صح: Latency: the time for an instruction to complete.','Throughput: عدد الـ instructions اللي بتخلص في الثانية، مش وقت instruction واحدة.','Clock cycle: النبضة اللي الـ CPU كله بيمشي عليها (lockstep).','CPI: متوسط عدد الـ clock cycles لكل instruction، رقم مش زمن.'],
+deep:'مثال الغسيل: غسلة واحدة بتاخد 30+40+20 = 90 دقيقة، دي الـ latency، وبتفضل 90 حتى مع الـ pipeline. اللي اتحسن إن الـ 4 غسلات خلصوا في 3.5 ساعة بدل 6، يعني الـ throughput زاد.'},
+
+{t:'mcq',S:1,L:1,q:'…… is the number of instructions completed per second.',o:TM,a:1,
+exp:'<b>Throughput</b> = كمية الشغل اللي بيخلص في وحدة الزمن (instructions per second). ده اللي الـ pipelining بيحسنه.',
+why:['Latency: زمن instruction واحدة، مش عدد في الثانية.','صح: Throughput of a CPU: the number of instructions completed per second.','Clock cycle: زمن نبضة الساعة.','CPI: cycles per instruction، عكس الفكرة.'],
+deep:'افتكر: Latency = "قد إيه بتستنى" (زمن)، Throughput = "قد إيه بيخلص" (كمية/زمن). سؤال صح وغلط مشهور: "pipelining decreases the latency of each instruction" = False، الصح إنه بيزود الـ throughput.'},
+
+{t:'mcq',S:1,L:2,q:'The following instruction R0 = ( R1 * R3 ) + R0 is considered',o:ISA,a:2,
+exp:'التعليمة دي بتعمل <b>عمليتين</b> (ضرب وبعدين جمع) في instruction واحدة، وده مثال <b>MAC R0,R1,R3</b> في المحاضرة، يعني <b>CISC</b> (Complex Instruction Set).',
+why:['SISC: مفيش حاجة اسمها كده، اختيار تمويه.','RISK: كلمة مكتوبة غلط (المصطلح RISC)، تمويه.','صح: multiple operations في instruction واحدة + complex hardware = CISC.','RISC: بيعمل عملية بسيطة واحدة بس، زي ADD R0,R1,R3 يعني R0 = R1 + R3.'],
+deep:'القاعدة: لو التعليمة فيها أكتر من عملية (ضرب + جمع) يبقى CISC. لو عملية واحدة بسيطة يبقى RISC. خلي بالك من الاختيارات المكتوبة غلط (SISC, RISK)، الدكتور حاططها عشان يلخبطك.'},
+
+{t:'mcq',S:1,L:3,q:'…… occur when the pipeline changes the order of read/write accesses to operands so that the order differs from the order seen by sequentially executing instructions on an unpipelined processor.',o:HZ,a:1,
+exp:'دي تعريف <b>data hazard</b>: الـ pipeline بيخلي instruction تقرا register قبل ما اللي قبلها تكتب فيه، فترتيب القراية والكتابة يختلف عن التنفيذ العادي. سببه <b>data dependency</b>.',
+why:['structural hazard: سببه resource conflict (نفس الـ hardware مطلوب لاتنين)، مش ترتيب read/write.','صح: changing the order of read/write accesses to operands = data hazard.','control hazard: سببه branches بتغير الـ PC.','None: غلط، لأن التعريف ده هو data hazard بالظبط.'],
+deep:'الـ 3 hazards في سطر: structural = resource conflicts، data = data dependency (read/write order)، control = PC changes (branches). أي جملة فيها "read/write" أو "operands" أو "dependency" يبقى data hazard. الحل: forwarding، ولو load-use لازم stall واحد.'},
+
+{t:'mcq',S:1,L:2,q:'In MIPS the PC is incremented by',o:['1 byte','2 byte','3 byte','4 byte'],a:3,
+exp:'كل instruction في MIPS حجمها <b>32 bit = 4 bytes</b>، والـ memory byte-addressable، فعشان نروح للـ instruction اللي بعدها: <b>PC = PC + 4</b>.',
+why:['1 byte: ده لو الـ instruction حجمها 8 bit بس.','2 byte: ده لو الـ instruction حجمها 16 bit.','3 byte: مفيش instruction حجمها 24 bit في MIPS.','صح: 32 bit ÷ 8 = 4 bytes، فالـ PC بيزيد 4.'],
+deep:'ده بيحصل في مرحلة IF: نجيب الـ instruction من الـ memory ونعمل PC+4. افتكر كمان أشكال الـ instructions كلها 32 bit: R = 6/5/5/5/5/6، I = 6/5/5/16، J = 6/26.'},
+
+{t:'mcq',S:1,L:1,q:'…… structure is only of theoretical interest since no practical system has been constructed using this organization.',o:FL,a:2,
+exp:'<b>MISD</b> هو النوع النظري في تصنيف Flynn: <b>مفيش نظام عملي</b> اتبنى بيه بشكل تجاري.',
+why:['SISD: موجود في كل الـ single-processor systems.','SIMD: موجود في الـ GPUs.','صح: MISD only of theoretical interest.','MIMD: موجود في أغلب الأجهزة الحديثة.'],
+deep:'حتى استخدامه المذكور (space shuttle flight control) بيتقال عليه "very limited application so not available commercially". فلو لقيت أي جملة فيها theoretical أو no practical system يبقى MISD.'},
+
+{t:'mcq',S:1,L:1,q:'Most modern PCs, laptops and smart phones are classified as …… systems.',o:FL,a:3,
+exp:'الأجهزة الحديثة multi-core وبتشغل <b>كذا برنامج في نفس الوقت</b>، كل core له instructions ولها data، فهي <b>MIMD</b>.',
+why:['SISD: ده للـ microcontrollers والـ mainframes القديمة.','SIMD: ده للـ GPUs و scientific processing.','MISD: نظري، استخدامه الوحيد space shuttle.','صح: Uses of MIMD: most modern PCs, laptops and smart phones.'],
+deep:'جدول الاستخدامات اللي لازم تحفظه: SISD → microcontrollers. SIMD → GPUs. MISD → space shuttle. MIMD → PCs/laptops/phones. والمزايا: SISD رخيص، SIMD كفء مع data كتير، MISD fault detection، MIMD multitasking.'},
+
+{t:'mcq',S:1,L:1,q:'All single-processor systems are ……',o:FL,a:0,
+exp:'لو فيه <b>processor واحد</b> يبقى instruction stream واحد و data stream واحد، يعني <b>SISD</b>. الجملة دي من السلايد حرفياً.',
+why:['صح: All single-processor systems are SISD.','SIMD: محتاج many processing units.','MISD: محتاج multiple processors على نفس الـ data.','MIMD: محتاج multiple processors.'],
+deep:'SISD ممكن يكون فيه pipelining أو multiple functional units، لكن طالما processor واحد يفضل SISD. ميزته cheap و low power، وعيبه limited speed due to being a single core.'},
+
+{t:'mcq',S:1,L:1,q:'…… is useful where real-time fault detection is critical.',o:FL,a:2,
+exp:'<b>MISD</b>: كذا processor بيعالجوا <b>نفس الـ data</b>، فلو واحد طلّع نتيجة مختلفة نكتشف الغلط فوراً. عشان كده ميزته <b>real-time fault detection</b>.',
+why:['SISD: ميزته cheap و low power.','SIMD: ميزته الكفاءة مع data كتير.','صح: Advantages of MISD: useful where real-time fault detection is critical.','MIMD: ميزته الـ multitasking.'],
+deep:'ربط سهل: fault detection محتاج تكرار الحساب على نفس الـ data، و"نفس الـ data" = Single Data، ومع multiple processors يبقى MISD. وده ليه استخدامه في space shuttle.'},
+
+{t:'mcq',S:1,L:1,q:'The time required between moving an instruction one step down the pipeline is called',o:['Latency','Processor cycle','Clock cycle','CPI'],a:1,
+exp:'<b>Processor cycle</b> = الزمن بين ما الـ instruction تتنقل خطوة (stage) في الـ pipeline والخطوة اللي بعدها.',
+why:['Latency: زمن الـ instruction كلها من أولها لآخرها، مش خطوة واحدة.','صح: Processor cycle: the time required between moving an instruction one step down the pipeline.','Clock cycle: النبضة اللي كل حاجة في الـ CPU بتتحرك عليها (lockstep).','CPI: عدد cycles لكل instruction.'],
+deep:'الفرق الدقيق: الـ clock cycle هو "دقة الساعة" اللي كله ماشي عليها، والـ processor cycle هو زمن خطوة واحدة في الـ pipeline (غالباً بيساوي clock cycle أو أكتر). الدكتور بيحب يحط التعريفين جنب بعض، فاحفظ الكلمات: lockstep = clock cycle، one step down the pipeline = processor cycle.'},
+
+{t:'mcq',S:1,L:1,q:'Everything in the CPU moves in lockstep, synchronized by the',o:TM,a:2,
+exp:'<b>Clock cycle</b>: كل أجزاء الـ CPU بتتحرك مع بعض على نفس النبضة (lockstep)، والـ clock هو اللي بيعمل الـ synchronization.',
+why:['Latency: زمن instruction، مش اللي بيعمل synchronization.','Throughput: عدد instructions في الثانية.','صح: Clock cycle: everything in the CPU moves in lockstep; synchronized by the clock.','CPI: متوسط cycles لكل instruction.'],
+deep:'في الـ pipeline الـ clock cycle لازم يكون قد أبطأ stage، عشان كل الـ stages تخلص في نفس النبضة. ده ليه لو المراحل مش متساوية الـ speedup بيقل عن k.'},
+
+{t:'mcq',S:1,L:2,q:'The instruction ADD R0,R1,R3 (which means R0 = R1 + R3) is considered',o:ISA,a:3,
+exp:'تعليمة <b>بسيطة</b> بتعمل <b>عملية واحدة</b> (جمع) وبتستخدم simple hardware، يعني <b>RISC</b> (Reduced Instruction Set).',
+why:['SISC: مصطلح مش موجود.','RISK: مكتوب غلط، تمويه.','CISC: لو كانت بتعمل عمليتين زي MAC (ضرب وجمع).','صح: ADD عملية واحدة بسيطة = RISC، وده مثال المحاضرة.'],
+deep:'قارن: MAC R0,R1,R3 = (R1*R3)+R0 → CISC. ADD R0,R1,R3 = R1+R3 → RISC. الـ RISC فيه 32 register و 3 classes: ALU instructions، load/store، branches and jumps.'},
+
+{t:'mcq',S:1,L:3,q:'…… arise from resource conflicts when the hardware cannot support all possible combinations of instructions simultaneously in overlapped execution.',o:HZ,a:0,
+exp:'<b>Structural hazard</b>: اتنين instructions عايزين <b>نفس الـ hardware</b> (resource) في نفس الـ cycle، زي memory port واحد بيستخدمه الـ IF والـ MEM في نفس الوقت.',
+why:['صح: resource conflicts = structural hazard، وده التعريف بالنص.','data hazard: سببه data dependency، مش hardware.','control hazard: سببه branches.','None: غلط، التعريف ده structural hazard.'],
+deep:'مثال المحاضرة: memory بـ port واحد، الـ load في cycle 4 بيقرا data وفي نفس الوقت instruction i+3 بتعمل fetch، فيحصل conflict. الحل: stall، أو أسهل: نزود resources (separate instruction and data memory/cache).'},
+
+{t:'mcq',S:1,L:3,q:'…… arise from the pipelining of branches and other instructions that change the PC.',o:HZ,a:2,
+exp:'<b>Control hazard</b>: لما يكون فيه branch (زي BEQ)، مش هنعرف الـ PC الجاي فين غير لما الـ branch يتحسب، فالـ instructions اللي اتعملها fetch بعده ممكن تكون غلط.',
+why:['structural hazard: resource conflicts.','data hazard: data dependency بين instructions.','صح: branches + PC changes = control hazard.','None: غلط.'],
+deep:'الحلول التلاتة: (1) Stall لحد ما نعرف نتيجة الـ branch. (2) Delayed branch: MIPS فيه 1 delay slot، الـ instruction اللي بعد الـ branch بتتنفذ دايماً. (3) Predict: نخمن ونكمل، ولو التخمين غلط نعمل flush/zap. ونقل قرار الـ branch لمرحلة ID بيقلل الـ penalty من 3 لـ 1 cycle.'},
+
+{t:'mcq',S:1,L:2,q:'RISC has …… registers and 3 classes of instructions.',o:['16','8','64','32'],a:3,
+exp:'المحاضرة: <b>RISC has 32 registers and 3 classes of instructions</b>. وده ليه رقم الـ register في الـ instruction محتاج <b>5 bits</b> (2⁵ = 32).',
+why:['16: محتاج 4 bits بس، مش رقم المحاضرة.','8: محتاج 3 bits، غلط.','64: محتاج 6 bits، غلط.','صح: 32 register، وعشان كده rs و rt و rd كل واحد 5 bits.'],
+deep:'الـ 3 classes: (1) ALU instructions: بتشتغل على two registers وتحط النتيجة في تالت. (2) Load and Store. (3) Branches and Jumps. وربط مع الكويز: rs = 5 bits لأن 32 = 2⁵.'},
+
+{t:'mcq',S:1,L:1,q:'The theoretical maximum speedup that a pipeline can provide is ……, where k is the number of segments.',o:['n','k','k + n − 1','tp'],a:1,
+exp:'لما n يكبر جداً، S = n·k·tp / ((k+n−1)·tp) بتقرب من <b>k</b>. يعني أقصى speedup = <b>عدد الـ segments</b>.',
+why:['n: عدد الـ tasks، مش حد الـ speedup.','صح: the theoretical maximum speedup that a pipeline can provide is k.','k + n − 1: ده عدد الـ clock cycles للـ pipeline.','tp: زمن الـ clock cycle، مش speedup.'],
+deep:'مثال المحاضرة: k = 4، والـ speedup لـ 100 task كان 3.88، وكل ما n يزيد بيقرب من 4. ليه مش بيوصل k في الواقع؟ لأن الـ segments بتاخد أزمنة مختلفة، وفيه overhead وhazards.'},
+
+{t:'mcq',S:1,L:2,q:'In the classic 5-stage RISC pipeline, decoding the instruction and reading the registers happens in the …… stage.',o:['IF','ID','EX','WB'],a:1,
+exp:'<b>ID</b> = Instruction Decode / register fetch: بنفك الـ instruction ونقرا الـ registers اللي محتاجينها.',
+why:['IF: Instruction Fetch، نجيب الـ instruction من الـ memory ونعمل PC+4.','صح: ID = instruction decode and register fetch.','EX: Execution/effective address، الـ ALU بيحسب.','WB: Write Back، نكتب النتيجة في الـ register file.'],
+deep:'الـ 5 stages بالترتيب: IF → ID → EX → MEM → WB. لكل instruction at most 5 clock cycles. الـ branch بيخلص في 2 cycles (لو القرار في ID)، والـ MEM بالنسبة لـ ADD dummy stage مبتعملش حاجة.'},
+
+{t:'mcq',S:1,L:4,q:'MIPS has …… branch delay slot(s).',o:['1','2','3','0'],a:0,
+exp:'MIPS فيه <b>1 branch delay slot</b>: الـ instruction اللي بعد الـ branch مباشرة <b>بتتنفذ دايماً</b>، سواء الـ branch اتاخد أو لأ.',
+why:['صح: MIPS has 1 branch delay slot.','2: غلط، الرقم في المحاضرة 1.','3: ده الـ branch penalty لو القرار في MEM، مش delay slots.','0: غلط، MIPS الأصلي كان فيه delay slot.'],
+deep:'الـ delayed branch معناه إن الـ compiler يحط instruction مفيدة بعد الـ branch بدل ما الـ pipeline يضيع cycle. ده حل من حلول الـ control hazard مع Stall و Predict.'},
+
+{t:'mcq',S:1,L:4,q:'For the sequence LW $s0,100($t0) followed directly by ADD $t2,$s0,$t3, the minimum number of stall cycles even with forwarding is',o:['0','2','1','3'],a:2,
+exp:'ده <b>load-use hazard</b>: الـ LW بيجيب القيمة من الـ memory في آخر MEM، والـ ADD محتاجها في أول EX في نفس الـ cycle. الـ forwarding مش بيرجع بالزمن، فلازم <b>stall واحد</b> وبعدين نعمل forward من MEM/WB.',
+why:['0: غلط، الـ forwarding لوحده مش كفاية مع load-use.','2: ده من غير forwarding خالص تقريباً، مش الحد الأدنى.','صح: 1 stall cycle وبعدين MEM/WB forwarding.','3: كتير، ده لو مفيش forwarding ولا split-cycle register file.'],
+deep:'الـ hazard detection unit بيعمل stall لو: ID/EX.MemRead = 1 و (ID/EX.RegisterRt = IF/ID.RegisterRs أو ID/EX.RegisterRt = IF/ID.RegisterRt). الـ stall بيكرر مرحلة ID للـ ADD، والـ NOP في MIPS هي SLL $0,$0,0.'},
+
+{t:'mcq',S:1,L:3,q:'Structural hazards are easy to eliminate by',o:['adding forwarding paths','using separate instruction and data memories','predicting branches','None'],a:1,
+exp:'الـ structural hazard سببه نقص resource، فالحل الأسهل <b>نزود الـ resources</b>: زي <b>separate instruction and data cache/memory</b> عشان الـ IF والـ MEM ميتخانقوش.',
+why:['forwarding: حل للـ data hazard.','صح: increase the number of resources، زي separate instruction and data memory.','predicting branches: حل للـ control hazard.','None: غلط لأن فيه حل مذكور في المحاضرة.'],
+deep:'حل تاني للـ structural hazard هو stall: تخلي instruction تستنى لحد ما الـ resource يفضى (زي الـ write port). وعشان كده الـ MIPS pipeline فيه instruction memory و data memory منفصلين.'},
+
+/* ============ (Q2) k-segment pipeline problems ============ */
+{t:'mcq',S:2,L:1,ctx:C2A,q:'Total time to complete n tasks using a k-segment pipeline is calculated by the formula',o:['[ k tp + (n − 1) tp ]','[ k tp + (n − tp) ]','[ k tp + n tp ]','None'],a:0,
+exp:'أول task بتاخد <b>k cycles</b> عشان تعدي على كل الـ segments، وبعدها كل task بتخلص في <b>cycle واحد</b>، فالـ (n−1) الباقيين ياخدوا (n−1) cycles. المجموع: <b>k·tp + (n−1)·tp = (k+n−1)·tp</b>.',
+why:['صح: k tp + (n−1) tp = (k+n−1) tp.','غلط: بيطرح tp من n، وحدات مش منطقية.','غلط: كده بيعد الـ task الأولى مرتين.','None: غلط لأن (a) صح.'],
+deep:'تخيل 4 segments و 3 tasks: T1 تخلص في cycle 4، T2 في 5، T3 في 6، يعني 4+3−1 = 6 cycles. احفظ: <b>Cycles = k+n−1</b> و <b>Time = (k+n−1)·tp</b>.'},
+{t:'mcq',S:2,L:1,ctx:C2A,q:'Total time to complete the 200 instructions using the 4-segment pipeline =',o:['203','2030','230','2040'],a:1,
+exp:'(k + n − 1) · tp = (4 + 200 − 1) × 10 = 203 × 10 = <b>2030 ns</b>.',
+why:['203: ده عدد الـ cycles، نسيت تضرب في tp = 10.','صح: 203 × 10 = 2030 ns.','230: حسبة غلط.','2040: ده (4+200) × 10، نسيت الـ −1.'],
+deep:'خطوتين: (1) cycles = 4+200−1 = 203. (2) × tp = 2030 ns. فخ الدكتور: 203 (نسيت tp) و 2040 (نسيت −1). نفس السؤال جه في الكويز وإجابته 2030.'},
+{t:'mcq',S:2,L:1,ctx:C2A,q:'Total time to complete the 200 instructions using a nonpipelined processor =',o:['4000','1200','8000','2000'],a:2,
+exp:'من غير pipeline كل instruction بتاخد tn = k·tp = 4 × 10 = 40 ns. الـ 200 instruction: n·tn = 200 × 40 = <b>8000 ns</b>.',
+why:['4000: ده 200 × 20، استخدمت tn غلط.','1200: حسبة غلط.','صح: n·k·tp = 200 × 4 × 10 = 8000 ns.','2000: ده n × tp بس، نسيت k.'],
+deep:'في الـ nonpipelined كل task لازم تخلص كلها قبل ما اللي بعدها تبدأ، فالوقت = n × tn. ومعطى إن tn = k·tp، يعني الـ task بتاخد نفس وقت عبورها على الـ 4 segments.'},
+{t:'mcq',S:2,L:1,ctx:C2A,q:'The speedup ratio is equal to S =',o:['8.69','1','3','3.94'],a:3,
+exp:'S = nonpipelined / pipelined = 8000 / 2030 = <b>3.94</b>. قريب من k = 4، وده منطقي لأن n كبيرة.',
+why:['8.69: حسبة غلط، والـ speedup مستحيل يعدي k = 4.','1: ده معناه مفيش تحسين.','3: ده tn/tp لو tn = 30، مش حالتنا.','صح: 8000/2030 = 3.94.'],
+deep:'Sanity check: الـ speedup لازم يكون أقل من أو يساوي k. لو طلعلك رقم أكبر من 4 هنا يبقى غلط فوراً، وده بيشيل اختيار 8.69 من غير حساب.'},
+{t:'mcq',S:2,L:1,ctx:C2A,q:'If we assume that tn = 80 ns, the speedup becomes',o:['1','2','8','4'],a:2,
+exp:'لما n كبيرة جداً الـ speedup ≈ tn / tp = 80 / 10 = <b>8</b>. ده نفس أسلوب المحاضرة: "if we assume tn = 60 ns, the speedup becomes 60/20 = 3".',
+why:['1: غلط.','2: غلط.','صح: tn/tp = 80/10 = 8.','4: ده k، ودي الإجابة لو tn = k·tp = 40.'],
+deep:'القانون العام: S = n·tn / ((k+n−1)·tp)، ولما n كبيرة يبقى S → tn/tp. لو tn = k·tp يبقى S → k. لكن هنا tn اتغير لـ 80 فـ S = 8.'},
+
+{t:'mcq',S:2,L:1,ctx:C2B,q:'How many clock cycles does the pipeline need to finish the 100 instructions?',o:['100','105','600','106'],a:1,
+exp:'Cycles = k + n − 1 = 6 + 100 − 1 = <b>105</b>.',
+why:['100: ده n بس، نسيت إن الأولى بتاخد k cycles.','صح: 6+100−1 = 105.','600: ده n × k، الـ nonpipelined cycles.','106: ده k+n، نسيت −1.'],
+deep:'أول instruction بتاخد 6 cycles، والـ 99 الباقيين واحد كل cycle: 6 + 99 = 105.'},
+{t:'mcq',S:2,L:1,ctx:C2B,q:'Total time to complete the 100 instructions using the 6-segment pipeline =',o:['2000','12000','2100','2120'],a:2,
+exp:'(k+n−1)·tp = 105 × 20 = <b>2100 ns</b>.',
+why:['2000: ده n × tp، نسيت k−1.','12000: ده الـ nonpipelined time.','صح: 105 × 20 = 2100 ns.','2120: ده (k+n) × tp، نسيت −1.'],
+deep:'نفس خطوات Q2 في الامتحان: cycles الأول، وبعدين اضرب في tp.'},
+{t:'mcq',S:2,L:1,ctx:C2B,q:'Total time to complete the 100 instructions using a nonpipelined processor =',o:['12000','2100','6000','2000'],a:0,
+exp:'tn = k·tp = 6 × 20 = 120 ns. الوقت = n·tn = 100 × 120 = <b>12000 ns</b>.',
+why:['صح: 100 × 6 × 20 = 12000 ns.','2100: ده الـ pipelined time.','6000: ده لو tn = 60.','2000: ده n × tp بس.'],
+deep:'الـ nonpipelined = n × k × tp دايماً لما tn = k·tp.'},
+{t:'mcq',S:2,L:1,ctx:C2B,q:'The speedup ratio S =',o:['6','5.71','1.75','0.17'],a:1,
+exp:'S = 12000 / 2100 = <b>5.71</b>، أقل من k = 6 زي ما متوقع.',
+why:['6: ده الحد الأقصى k، بيتحقق بس لما n → ∞.','صح: 12000/2100 = 5.71.','1.75: حسبة غلط.','0.17: ده 2100/12000، قسمت بالعكس.'],
+deep:'الـ speedup = الوقت القديم ÷ الوقت الجديد (nonpipelined ÷ pipelined). لو طلع أقل من 1 يبقى قلبت القسمة.'},
+{t:'mcq',S:2,L:1,ctx:C2B,q:'As the number of instructions increases (n → ∞), the speedup approaches',o:['100','20','120','6'],a:3,
+exp:'الـ speedup بيقرب من <b>k = 6</b>، عدد الـ segments.',
+why:['100: ده n.','20: ده tp.','120: ده tn.','صح: maximum speedup = k = 6.'],
+deep:'S = n·k·tp / ((k+n−1)·tp). لما n كبيرة جداً k−1 تبقى مهملة جنب n، فـ S ≈ n·k/n = k.'},
+
+{t:'mcq',S:2,L:1,ctx:C2C,q:'The pipeline clock cycle tp =',o:['115 ns','40 ns','20 ns','28.75 ns'],a:1,
+exp:'الـ clock cycle لازم يكفي <b>أبطأ segment</b>، عشان كل الـ segments تخلص في نفس النبضة. أبطأ واحد = <b>40 ns</b>.',
+why:['115: ده مجموع الـ segments، يعني tn للـ nonpipelined.','صح: tp = max segment delay = 40 ns.','20: ده أسرع segment، والأبطأ مش هيلحق يخلص.','28.75: ده المتوسط، والـ clock لازم يكفي الأبطأ مش المتوسط.'],
+deep:'ده سبب من أسباب إن الـ pipeline مش بيوصل للـ theoretical maximum: "different segments may take different times to complete their suboperation"، فالـ segments السريعة بتقعد مستنية.'},
+{t:'mcq',S:2,L:1,ctx:C2C,q:'Number of clock cycles needed to finish the 50 tasks in the pipeline =',o:['50','54','53','200'],a:2,
+exp:'k + n − 1 = 4 + 50 − 1 = <b>53</b> cycles.',
+why:['50: ده n بس.','54: ده k+n، نسيت −1.','صح: 4+50−1 = 53.','200: ده n × k.'],
+deep:'نفس القانون مهما اختلفت أزمنة الـ segments، لأن كل الـ segments ماشية على نفس الـ clock.'},
+{t:'mcq',S:2,L:1,ctx:C2C,q:'Total time to complete the 50 tasks using the pipeline =',o:['2120 ns','2000 ns','1060 ns','6095 ns'],a:0,
+exp:'53 cycles × 40 ns = <b>2120 ns</b>.',
+why:['صح: (4+50−1) × 40 = 2120 ns.','2000: ده n × tp، نسيت k−1.','1060: ده 53 × 20، استخدمت أسرع segment.','6095: ده 53 × 115، استخدمت مجموع الـ segments كـ clock.'],
+deep:'الخطأ الشائع إنك تستخدم المتوسط أو أسرع segment. الـ clock = الأبطأ دايماً.'},
+{t:'mcq',S:2,L:1,ctx:C2C,q:'Total time to complete the 50 tasks using the nonpipelined processor =',o:['8000 ns','2120 ns','6000 ns','5750 ns'],a:3,
+exp:'tn = 30+25+40+20 = 115 ns. الوقت = 50 × 115 = <b>5750 ns</b>.',
+why:['8000: ده 50 × 160 (4 × 40)، افترضت tn = k·tp وده مش المعطى هنا.','2120: ده الـ pipelined time.','6000: حسبة غلط.','صح: n × tn = 50 × 115 = 5750 ns.'],
+deep:'خلي بالك: هنا السؤال قال tn = مجموع الـ segments، مش k·tp. الـ nonpipelined مش بيستنى الأبطأ في كل خطوة، هو بس بيعدي على الأربعة بالترتيب.'},
+{t:'mcq',S:2,L:1,ctx:C2C,q:'The speedup ratio S =',o:['4','2.71','2.88','0.37'],a:1,
+exp:'S = 5750 / 2120 = <b>2.71</b>. أقل بكتير من k = 4 بسبب عدم توازن الـ segments.',
+why:['4: ده k، بيتحقق بس لو الـ segments متساوية و n → ∞.','صح: 5750/2120 = 2.71.','2.88: ده 115/40، الحد الأقصى لما n → ∞، مش لـ 50 task.','0.37: القسمة بالعكس.'],
+deep:'مقارنة مفيدة: لو الـ segments كانت متساوية (كل واحد 28.75) كان الـ speedup هيقرب من 4. عدم التوازن (stage imbalance) خلّى الحد الأقصى 115/40 = 2.88 بس.'},
+
+/* ============ (Q3) unpipelined vs pipelined ============ */
+{t:'mcq',S:3,L:3,ctx:C3A,q:'Average instruction time unpipelined =',o:['4.4','10.7','8','none'],a:1,
+exp:'Average CPI = 0.45×5 + 0.10×4 + 0.45×6 = 2.25 + 0.4 + 2.7 = 5.35. الوقت = 5.35 × 2 ns = <b>10.7 ns</b>.',
+why:['4.4: ده رقم مثال المحاضرة (1 ns clock)، مش السؤال ده.','صح: 2 × 5.35 = 10.7 ns.','8: حسبة غلط.','none: غلط لأن 10.7 موجودة.'],
+deep:'القانون: Average instruction time = clock cycle × Σ(frequency × cycles). اضرب كل نوع في نسبته واجمع، وبعدين اضرب في الـ clock. افتكر: الـ frequencies لازم مجموعها 100%.'},
+{t:'mcq',S:3,L:3,ctx:C3A,q:'Average instruction time pipelined =',o:['2.2','20','6','none'],a:0,
+exp:'في الـ pipeline المثالي CPI = 1، فالوقت = clock + overhead = 2 + 0.2 = <b>2.2 ns</b>.',
+why:['صح: (2 ns × 1) + 0.2 = 2.2 ns.','20: حسبة غلط.','6: حسبة غلط.','none: غلط.'],
+deep:'ليه CPI = 1؟ لأن في الـ pipeline كل cycle بتخلص instruction (في الحالة المثالية من غير hazards). الـ overhead بيتضاف على الـ clock بسبب stage imbalance و pipeline register setup و clock skew.'},
+{t:'mcq',S:3,L:3,ctx:C3A,q:'Speedup by pipelining =',o:['1.78','4.86','0.5','none'],a:1,
+exp:'Speedup = unpipelined / pipelined = 10.7 / 2.2 = <b>4.86</b>.',
+why:['1.78: حسبة غلط.','صح: 10.7 / 2.2 = 4.86.','0.5: أقل من 1، معناه إنك قسمت بالعكس أو حسبة غلط.','none: غلط.'],
+deep:'نفس مثال المحاضرة بالظبط بأرقام مختلفة: هناك 4.4 / 1.2 = 3.7. الخطوات التلاتة ثابتة: (1) avg CPI × clock، (2) clock + overhead، (3) اقسم.'},
+
+{t:'mcq',S:3,L:3,ctx:C3B,q:'Average CPI of the unpipelined processor =',o:['4','4.1','12','3.4'],a:1,
+exp:'CPI = 0.5×4 + 0.2×3 + 0.3×5 = 2 + 0.6 + 1.5 = <b>4.1</b>.',
+why:['4: ده المتوسط العادي (4+3+5)/3، من غير ما تراعي النسب.','صح: weighted average = 4.1.','12: ده مجموع الـ cycles من غير نسب.','3.4: حسبة غلط.'],
+deep:'الـ CPI متوسط <b>مرجّح</b> (weighted): كل نوع بيتضرب في نسبة ظهوره. ده الفخ: لو جمعت وقسمت على 3 هتطلع 4 وده غلط.'},
+{t:'mcq',S:3,L:3,ctx:C3B,q:'Average instruction time unpipelined =',o:['6.15','4.1','6.0','1.8'],a:0,
+exp:'4.1 × 1.5 ns = <b>6.15 ns</b>.',
+why:['صح: CPI × clock = 4.1 × 1.5 = 6.15 ns.','4.1: ده الـ CPI، نسيت تضرب في الـ clock.','6.0: ده 4 × 1.5، استخدمت المتوسط الغلط.','1.8: ده الـ pipelined time.'],
+deep:'Instruction time = CPI × Clock cycle time، من قانون CPU time = IC × CPI × clock.'},
+{t:'mcq',S:3,L:3,ctx:C3B,q:'Average instruction time pipelined =',o:['0.3','1.2','1.8','1.5'],a:2,
+exp:'1.5 + 0.3 = <b>1.8 ns</b>.',
+why:['0.3: ده الـ overhead بس.','1.2: ده 1.5 − 0.3، طرحت بدل ما تجمع.','صح: clock + overhead = 1.8 ns.','1.5: نسيت الـ overhead.'],
+deep:'الـ overhead دايماً بيزود وقت الـ cycle في الـ pipeline، عمره ما بينقصه.'},
+{t:'mcq',S:3,L:3,ctx:C3B,q:'Speedup by pipelining =',o:['2.28','4.1','3.0','3.42'],a:3,
+exp:'6.15 / 1.8 = <b>3.42</b>.',
+why:['2.28: حسبة غلط.','4.1: ده الـ speedup لو مفيش overhead (6.15/1.5).','3.0: حسبة غلط.','صح: 6.15 / 1.8 = 3.42.'],
+deep:'لاحظ إن الـ overhead نزّل الـ speedup من 4.1 لـ 3.42. ده بيوضح ليه الـ pipeline مش بيدي الـ speedup المثالي.'},
+
+{t:'mcq',S:3,L:3,ctx:C3C,q:'Average instruction time unpipelined =',o:['4.4','0.6','2.2','none'],a:2,
+exp:'CPI = 0.4×4 + 0.2×2 + 0.4×6 = 1.6 + 0.4 + 2.4 = 4.4. الوقت = 4.4 × 0.5 = <b>2.2 ns</b>.',
+why:['4.4: ده الـ CPI، نسيت تضرب في 0.5 ns.','0.6: ده الـ pipelined time.','صح: 4.4 × 0.5 = 2.2 ns.','none: غلط.'],
+deep:'فخ: 4.4 هو رقم مثال المحاضرة، لكن هناك الـ clock كان 1 ns فالـ CPI = الوقت. هنا الـ clock 0.5 فلازم تضرب.'},
+{t:'mcq',S:3,L:3,ctx:C3C,q:'Average instruction time pipelined =',o:['0.5','0.6','0.1','none'],a:1,
+exp:'0.5 + 0.1 = <b>0.6 ns</b>.',
+why:['0.5: نسيت الـ overhead.','صح: 0.5 + 0.1 = 0.6 ns.','0.1: ده الـ overhead لوحده.','none: غلط.'],
+deep:'CPI في الـ pipeline المثالي = 1، فالوقت = 1 × clock + overhead.'},
+{t:'mcq',S:3,L:3,ctx:C3C,q:'Speedup by pipelining =',o:['2.2','4.4','1.2','3.67'],a:3,
+exp:'2.2 / 0.6 = <b>3.67</b>.',
+why:['2.2: ده الـ unpipelined time، مش speedup.','4.4: ده الـ speedup لو الـ overhead = 0 (2.2/0.5).','1.2: حسبة غلط.','صح: 2.2 / 0.6 = 3.67.'],
+deep:'راجع الـ 3 خطوات: avg CPI × clock = 2.2، clock + overhead = 0.6، speedup = 2.2/0.6 = 3.67.'}
+];
+
+</script>
+<script>
+(function(){
+  Q.forEach(q=>{ if(q.p){ q.o=q.p.map(k=>q.o[k]); q.why=q.p.map(k=>q.why[k]); q.a=q.p.indexOf(q.a); } });
+  const KEY='cs471-modelA-v1';
+  const LET=['A','B','C','D'];
+  let S={mode:'exam',ans:{},flag:{},submitted:false,filter:'all'};
+  try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s) S=Object.assign(S,s);}catch(e){}
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}};
+
+  const $=id=>document.getElementById(id);
+  const has=i=>S.ans[i]!==undefined;
+  const revealed=i=>S.submitted||(S.mode==='practice'&&has(i));
+  const correct=i=>has(i)&&S.ans[i]===Q[i].a;
+  const SEC={1:'(Q1) Choose the Correct Answer — اختار الإجابة الصح',2:'(Q2) مسائل الـ k-segment Pipeline',3:'(Q3) مسائل الـ Unpipelined vs Pipelined'};
+  const nSec={}; Q.forEach(q=>{nSec[q.S]=(nSec[q.S]||0)+1;});
+
+  function visible(i){
+    if(S.filter==='flag') return !!S.flag[i];
+    if(S.filter==='wrong') return revealed(i)?!correct(i):(S.submitted&&!has(i));
+    if(S.filter==='un') return !has(i);
+    return true;
+  }
+
+  function cardHTML(i){
+    const q=Q[i], r=revealed(i), fl=!!S.flag[i], my=S.ans[i];
+    let h='<article class="card'+(fl?' flagged':'')+'" id="q'+(i+1)+'">';
+    h+='<div class="card-h"><span class="num">Q'+(i+1)+'</span>'+
+       '<span class="tag">Q'+q.S+'</span>'+
+       '<span class="tag">Lecture '+q.L+'</span>'+
+       '<button class="flag-btn" data-flag="'+i+'" aria-pressed="'+fl+'">'+(fl?'متعلّم عليه ✓':'علّم للمراجعة')+'</button></div>';
+    if(q.ctx) h+='<div class="ctx">'+q.ctx+'</div>';
+    h+='<p class="qtext">'+q.q+'</p>';
+    if(q.code) h+='<pre class="code">'+q.code+'</pre>';
+    h+='<div class="opts">';
+    q.o.forEach((o,k)=>{
+      let c='opt', mark='';
+      if(r){
+        if(k===q.a){c+=' right'; mark=(my===k)?'إجابتك ✓':'الإجابة الصح';}
+        else if(my===k){c+=' wrong'; mark='إجابتك ✗';}
+      } else if(my===k) c+=' sel';
+      const lock = r ? ' disabled' : '';
+      h+='<button class="'+c+'" data-q="'+i+'" data-o="'+k+'"'+lock+'><span class="k">'+(q.t==='tf'?(k===0?'T':'F'):LET[k])+'</span><span class="lbl">'+o+'</span>'+(mark?'<span class="mark">'+mark+'</span>':'')+'</button>';
+    });
+    h+='</div>';
+    if(r){
+      const v = !has(i)?'<div class="verdict skip">ماجاوبتش على السؤال ده</div>':(correct(i)?'<div class="verdict ok">إجابتك صح</div>':'<div class="verdict no">إجابتك غلط</div>');
+      h+='<div class="reveal">'+v;
+      h+='<div class="blk"><h4>الشرح</h4><p>'+q.exp+'</p></div>';
+      h+='<div class="blk answer"><h4>الإجابة الصحيحة</h4><p><span class="val">'+(q.t==='tf'?q.o[q.a]:LET[q.a]+') '+q.o[q.a])+'</span></p></div>';
+      h+='<div class="blk"><h4>ليه كل اختيار صح أو غلط</h4><ul class="why">';
+      q.why.forEach((w,k)=>{h+='<li class="'+(k===q.a?'ok':'no')+'"><span class="k">'+(q.t==='tf'?(k===0?'T':'F'):LET[k])+'</span><span>'+w+'</span></li>';});
+      h+='</ul></div>';
+      h+='<details class="deep"'+(fl?' open':'')+'><summary>شرح إضافي'+(fl?' (عشان علّمت عليه)':'')+'</summary><div class="in">'+q.deep+'</div></details>';
+      h+='</div>';
+    } else if(fl){
+      h+='<div class="hint">هيظهرلك شرح إضافي للسؤال ده بعد ما تجاوب'+(S.mode==='exam'?' وتسلّم':'')+'.</div>';
+    }
+    return h+'</article>';
+  }
+
+  function renderList(){
+    let h='', lastS=0;
+    let shown=0;
+    Q.forEach((q,i)=>{
+      if(!visible(i)) return;
+      if(q.S!==lastS){ h+='<h3 class="section-h">'+SEC[q.S]+'</h3>'; lastS=q.S; }
+      h+=cardHTML(i); shown++;
+    });
+    if(!shown){
+      const msg={flag:'مفيش أسئلة متعلّم عليها. دوس "علّم للمراجعة" على أي سؤال عشان يظهر هنا.',
+                 wrong:'مفيش أسئلة غلط ظاهرة. في وضع الامتحان لازم تسلّم الأول.',
+                 un:'جاوبت على كل الأسئلة.'}[S.filter]||'';
+      h='<div class="empty">'+msg+'</div>';
+    }
+    $('list').innerHTML=h;
+  }
+
+  function renderCard(i){
+    const el=$('q'+(i+1));
+    if(!el) return;
+    if(!visible(i)){ el.remove(); return; }
+    el.outerHTML=cardHTML(i);
+  }
+
+  function renderMap(){
+    let h='';
+    Q.forEach((q,i)=>{
+      let c='cell';
+      if(revealed(i)) c+= correct(i)?' ok':(has(i)||S.submitted?' no':'');
+      else if(has(i)) c+=' ans';
+      if(S.flag[i]) c+=' fl';
+      h+='<button class="'+c+'" data-go="'+i+'" aria-label="سؤال '+(i+1)+'">'+(i+1)+'</button>';
+    });
+    $('map').innerHTML=h;
+  }
+
+  function counts(){
+    let answered=0, ok=0, rev=0, flags=0; const okS={1:0,2:0,3:0};
+    Q.forEach((q,i)=>{
+      if(has(i)) answered++;
+      if(S.flag[i]) flags++;
+      if(revealed(i)){ rev++; if(correct(i)){ok++; okS[q.S]++;} }
+    });
+    return {answered,ok,okS,rev,flags};
+  }
+
+  function renderBar(){
+    const c=counts();
+    let s='<span>اتجاوب <b>'+c.answered+'/'+Q.length+'</b></span><span>متعلّم <b>'+c.flags+'</b></span>';
+    if(S.submitted||S.mode==='practice') s+='<span>صح <b>'+c.ok+'/'+(S.submitted?Q.length:c.rev)+'</b></span>';
+    $('stats').innerHTML=s;
+    $('mode-exam').setAttribute('aria-pressed',S.mode==='exam');
+    $('mode-practice').setAttribute('aria-pressed',S.mode==='practice');
+    const sb=$('submit');
+    sb.hidden = S.submitted || S.mode==='practice';
+    if(!armed.submit) sb.textContent='سلّم واعرض الإجابات';
+    if(!armed.reset) $('reset').textContent='ابدأ من جديد';
+    ['all','flag','wrong','un'].forEach(f=>$('f-'+f).setAttribute('aria-pressed',S.filter===f));
+  }
+
+  function renderScore(){
+    const box=$('score');
+    if(!S.submitted){ box.hidden=true; return; }
+    const c=counts(), pct=Math.round(c.ok/Q.length*100);
+    const msg = pct>=85?'ممتاز، انت جاهز.':pct>=65?'كويس. راجع الغلط والمتعلّم عليه.':'محتاج مراجعة. ابدأ بالغلط بس واقرا الشرح الإضافي.';
+    box.innerHTML='<h2>النتيجة</h2><div class="big">'+c.ok+' / '+Q.length+'</div>'+
+      '<div class="meter"><i style="width:'+pct+'%"></i></div>'+
+      '<div class="rows">'+[1,2,3].map(k=>'<span>Q'+k+': <b>'+c.okS[k]+' / '+nSec[k]+'</b></span>').join('')+'<span>النسبة: <b>'+pct+'%</b></span><span>من غير إجابة: <b>'+(Q.length-c.answered)+'</b></span></div>'+
+      '<p style="margin:0">'+msg+'</p>'+
+      '<div class="actions"><button class="btn" data-filter="wrong">اعرض الغلط بس</button><button class="btn" data-filter="flag">اعرض المتعلّم عليها</button></div>';
+    box.hidden=false;
+  }
+
+  function renderAll(){ renderBar(); renderMap(); renderScore(); renderList(); }
+
+  const armed={submit:false,reset:false};
+  function disarm(){ armed.submit=false; armed.reset=false; $('submit').classList.remove('warn'); $('reset').classList.remove('warn'); }
+
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('button'); if(!t) return;
+    if(t.id!=='submit'&&t.id!=='reset') disarm();
+    if(t.dataset.o!==undefined){
+      const i=+t.dataset.q, k=+t.dataset.o;
+      if(revealed(i)) return;
+      S.ans[i]=k; save(); renderCard(i); renderMap(); renderBar(); return;
+    }
+    if(t.dataset.flag!==undefined){
+      const i=+t.dataset.flag; if(S.flag[i]) delete S.flag[i]; else S.flag[i]=true;
+      save(); renderCard(i); renderMap(); renderBar(); return;
+    }
+    if(t.dataset.go!==undefined){
+      const i=+t.dataset.go;
+      if(!visible(i)){ S.filter='all'; save(); renderAll(); }
+      const el=$('q'+(i+1)); if(el) el.scrollIntoView({block:'start'}); return;
+    }
+    if(t.dataset.mode){ if(S.mode!==t.dataset.mode){ S.mode=t.dataset.mode; save(); renderAll(); } return; }
+    if(t.dataset.filter){ S.filter=t.dataset.filter; save(); renderAll(); if(t.closest('#score')) $('list').scrollIntoView({block:'start'}); return; }
+    if(t.id==='submit'){
+      const left=Q.length-counts().answered;
+      if(left>0 && !armed.submit){ armed.submit=true; t.classList.add('warn'); t.textContent='فاضل '+left+' سؤال من غير إجابة. دوس تاني للتسليم'; return; }
+      disarm(); S.submitted=true; save(); renderAll(); $('score').scrollIntoView({block:'start'}); return;
+    }
+    if(t.id==='reset'){
+      if(!armed.reset){ armed.reset=true; t.classList.add('warn'); t.textContent='هيمسح إجاباتك (العلامات هتفضل). دوس تاني للتأكيد'; return; }
+      disarm(); S.ans={}; S.submitted=false; S.filter='all'; save(); renderAll(); window.scrollTo({top:0}); return;
+    }
+  });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
